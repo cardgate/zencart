@@ -12,7 +12,7 @@ abstract class cgp_generic {
     var $debug = false;
     var $order_status = 0;
 
-    const version = '1.5.6';
+    const version = '1.5.7';
 
     function dump( $str ) {
         echo '<div style="color: #FFFFFF; background: #A0c0c0; border: 1px solid #000000;">';
@@ -29,9 +29,16 @@ abstract class cgp_generic {
     }
 
     function cg_action_url() {
-        $url = 'https://gateway.cardgateplus.com/';
-        //$url = 'http://gateway.cardgate.dev/';
-        return $url;
+        $cgp_test = (constant( $this->module_payment_type . '_MODE' ) === 'Test' ? 1 : 0);
+        if ( !empty( $_SERVER['CGP_GATEWAY_URL'] ) ) {
+            return $_SERVER['CGP_GATEWAY_URL'];
+        } else {
+            if ( $cgp_test ) {
+                return "https://secure-staging.curopayments.net/gateway/cardgate/";
+            } else {
+                return "https://secure.curopayments.net/gateway/cardgate/";
+            }
+        }
     }
 
     function javascript_validation() {
@@ -133,7 +140,7 @@ abstract class cgp_generic {
         global $db;
 
         $current_sinfo = PROJECT_VERSION_NAME . ' v' . PROJECT_VERSION_MAJOR . '.' . PROJECT_VERSION_MINOR . '/';
-        
+
         $customer_id = $_SESSION['customer_id'];
         $cgp_test = (constant( $this->module_payment_type . '_MODE' ) === 'Test' ? 1 : 0);
         $cgp_amount = round( $order->info['total'] * 100 );
@@ -170,7 +177,56 @@ abstract class cgp_generic {
                 $zenid = $_REQUEST['zenid'];
             }
         }
+
+        $products = $order->products;
+        $tax_total = 0;
         
+        foreach ( $products as $product ) {
+
+            $aProductid = split( ':', $product['id'] );
+            $productid = $aProductid[0];
+
+            $result = $db->execute( "SELECT * FROM products WHERE products_id='" . $product['id'] . "'" );
+
+            $item = array();
+            $item['stock'] = $result->fields['products_quantity'];
+            $item['quantity'] = $product['qty'];
+            $item['sku'] = 'product_' . $productid;
+            $item['name'] = $product['name'];
+            $item['price'] = round( $product['final_price'] / $item['quantity'] * 100, 0 );
+            $item['vat_amount'] = round( $product['tax']/100 * $item['price'], 0 );
+            $item['vat_inc'] = 0;
+            $item['type'] = 1;
+            $cartitems[] = $item;
+            
+            $tax_total += $item['vat_amount'];
+        }
+        
+        if ( $order->info['shipping_cost'] > 0 ) {
+            $shipping_tax = 0;
+            foreach ( $cart['taxes'] as $tax ) {
+                $shipping_tax += $tax['tax_cost_shipping'];
+            }
+            $item = array();
+            $item['quantity'] = 1;
+            $item['sku'] = $order->info['shipping_module_code'];
+            $item['name'] = $order->info['shipping_method'];
+            $item['price'] = round( $order->info['shipping_cost'] * 100, 0 );
+            $item['vat_amount'] = round( $order->info['shipping_tax'] * 100, 0 );
+            $item['vat_inc'] = 0;
+            $item['type'] = 2;
+            $cartitems[] = $item;
+            
+            $tax_total += $item['vat_amount'];
+        }
+        
+        // correct for rounding error
+        $tax_difference = $tax_total - round($order->info['tax']*100,0);
+        if ($tax_difference !=0){
+            reset($cartitems);
+            $cartitems[key($cartitems)]['vat_amount'] = $cartitems[key($cartitems)]['vat_amount'] - $tax_difference;
+        }
+
         $sHashkey = '';
         if ( '' != constant( $this->module_payment_type . '_KEYCODE' ) )
             $sHashKey = md5( ($cgp_test == 1 ? "TEST" : "") . constant( $this->module_payment_type . '_SITEID' ) . $cgp_amount . $cardgate_ref . constant( $this->module_payment_type . '_KEYCODE' ) );
@@ -194,7 +250,7 @@ abstract class cgp_generic {
                 zen_draw_hidden_field( 'phone_number', $order->customer['telephone'] ) .
                 zen_draw_hidden_field( 'country', $order->customer['country']['iso_code_2'] ) .
                 zen_draw_hidden_field( 'zencart_order', serialize( $order->products ) ) .
-                zen_draw_hidden_field( 'return_url', zen_href_link( FILENAME_CHECKOUT_SUCCESS, '', 'SSL' ).'&action=empty_cart' ) .
+                zen_draw_hidden_field( 'return_url', zen_href_link( FILENAME_CHECKOUT_SUCCESS, '', 'SSL' ) . '&action=empty_cart' ) .
                 zen_draw_hidden_field( 'return_url_failed', $protocol . $domain_name . $file ) .
                 zen_draw_hidden_field( 'plugin_name', $this->code ) .
                 zen_draw_hidden_field( 'plugin_version', self::version ) .
@@ -204,7 +260,11 @@ abstract class cgp_generic {
         if ( $this->payment_option == 'ideal' ) {
             $process_button_string .= zen_draw_hidden_field( 'suboption', $_POST['suboption'] );
         }
- 
+        
+        if ( count( $cartitems ) > 0 ) {
+            $process_button_string .= zen_draw_hidden_field( 'cartitems', json_encode( $cartitems, JSON_HEX_APOS | JSON_HEX_QUOT ));
+        }
+
         return $process_button_string;
     }
 
@@ -318,32 +378,18 @@ abstract class cgp_generic {
     }
 
     private function getBankOptions() {
-        $url = 'https://gateway.cardgateplus.com/cache/idealDirectoryRabobank.dat';
+        $url = 'https://secure.curopayments.net/cache/idealDirectoryCUROPayments.dat';
         if ( !ini_get( 'allow_url_fopen' ) || !function_exists( 'file_get_contents' ) ) {
             $result = false;
         } else {
             $result = file_get_contents( $url );
         }
-
-        $aBanks = array();
-
         if ( $result ) {
             $aBanks = unserialize( $result );
             $aBanks[0] = '-Maak uw keuze a.u.b.-';
+            return $aBanks;
         }
-        if ( count( $aBanks ) < 1 ) {
-            $aBanks = array( '0031' => 'ABN Amro',
-                '0091' => 'Friesland Bank',
-                '0721' => 'ING Bank',
-                '0021' => 'Rabobank',
-                '0751' => 'SNS Bank',
-                '0761' => 'ASN Bank',
-                '0771' => 'SNS Regio Bank',
-                '0511' => 'Triodos Bank',
-                '0161' => 'Van Landschot Bank'
-            );
-        }
-        return $aBanks;
+        return $result;
     }
 
     function logo( $payment_option ) {
@@ -352,7 +398,7 @@ abstract class cgp_generic {
         $domain_name = $_SERVER['HTTP_HOST'];
         $file = $protocol . $domain_name . '/cardgateplus/images/' . $payment_option . '.jpg';
 
-        return '<img src="' . $file . '" />&nbsp;';
+        return '<img style="max-width: 80px;" src="' . $file . '" />&nbsp;';
     }
 
 }

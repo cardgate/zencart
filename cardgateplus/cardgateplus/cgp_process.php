@@ -116,7 +116,6 @@ if ( isset( $_GET['status'] ) && $_GET['status'] == 'cancelled' ) {
     exit;
 } else {
 
-
     // check if it is a callback from Card Gate Plus and process
 
     include ($language_page_directory . 'checkout_process.php');
@@ -125,7 +124,7 @@ if ( isset( $_GET['status'] ) && $_GET['status'] == 'cancelled' ) {
 
     $get_customer_id = ( int ) $ar[0];
     $ref_id = ( int ) $ar[1];
-    $transaction_id = ( int ) $_POST['transactionid'];
+    $transaction_id = $_POST['transactionid'];
     $is_test = ( int ) $_POST['is_test'];
     $status = ( int ) $_POST['status'];
     $amount = ( int ) $_POST['amount'];
@@ -156,6 +155,17 @@ if ( isset( $_GET['status'] ) && $_GET['status'] == 'cancelled' ) {
         if ( $hashVerify != $cgp_hash ) {
             // Transaction not OK
             exit( 'Hash verification failed.' );
+        }
+
+
+        // check if table needs to be changed
+
+        $transactiom_id_column = $db->execute( "SHOW FIELDS FROM CGP_orders_table where Field ='transaction_id'" );
+        
+        
+                
+        if ( $transactiom_id_column->fields['Type'] == 'int(11)' ) {
+            $db->execute( 'ALTER TABLE CGP_orders_table MODIFY transaction_id CHAR(32)' );
         }
 
         // transaction data has been verified and is correct.
@@ -225,14 +235,11 @@ if ( isset( $_GET['status'] ) && $_GET['status'] == 'cancelled' ) {
                 $_SESSION['order_summary']['commissionable_order_formatted'] = $commissionable_order_formatted;
                 $_SESSION['order_summary']['coupon_code'] = $order->info['coupon_code'];
                 $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_HANDLE_AFFILIATES', 'cardgateipn' );
-
             }
         }
     }
+    echo ($_POST['transactionid'] . '.' . $_POST['status_id']);
 }
-//DEFAULT_ORDERS_STATUS_ID
 
 require('includes/application_bottom.php');
-
-echo ( int ) $_POST['transactionid'] . '.' . ( int ) $_POST['status'];
 ?>
