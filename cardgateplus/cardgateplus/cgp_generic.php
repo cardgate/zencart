@@ -29,15 +29,11 @@ abstract class cgp_generic {
     }
 
     function cg_action_url() {
-        $cgp_test = (constant( $this->module_payment_type . '_MODE' ) === 'Test' ? 1 : 0);
-        if ( !empty( $_SERVER['CGP_GATEWAY_URL'] ) ) {
-            return $_SERVER['CGP_GATEWAY_URL'];
+        $cgp_test = (constant( $this->module_payment_type . '_MODE' ) === 'Test' ? true : false);
+        if ( $cgp_test ) {
+            return "https://secure-staging.curopayments.net/gateway/cardgate/";
         } else {
-            if ( $cgp_test ) {
-                return "https://secure-staging.curopayments.net/gateway/cardgate/";
-            } else {
-                return "https://secure.curopayments.net/gateway/cardgate/";
-            }
+            return "https://secure.curopayments.net/gateway/cardgate/";
         }
     }
 
@@ -180,7 +176,7 @@ abstract class cgp_generic {
 
         $products = $order->products;
         $tax_total = 0;
-        
+
         foreach ( $products as $product ) {
 
             $aProductid = split( ':', $product['id'] );
@@ -194,14 +190,14 @@ abstract class cgp_generic {
             $item['sku'] = 'product_' . $productid;
             $item['name'] = $product['name'];
             $item['price'] = round( $product['final_price'] / $item['quantity'] * 100, 0 );
-            $item['vat_amount'] = round( $product['tax']/100 * $item['price'], 0 );
+            $item['vat_amount'] = round( $product['tax'] / 100 * $item['price'], 0 );
             $item['vat_inc'] = 0;
             $item['type'] = 1;
             $cartitems[] = $item;
-            
+
             $tax_total += $item['vat_amount'];
         }
-        
+
         if ( $order->info['shipping_cost'] > 0 ) {
             $shipping_tax = 0;
             foreach ( $cart['taxes'] as $tax ) {
@@ -216,15 +212,15 @@ abstract class cgp_generic {
             $item['vat_inc'] = 0;
             $item['type'] = 2;
             $cartitems[] = $item;
-            
+
             $tax_total += $item['vat_amount'];
         }
-        
+
         // correct for rounding error
-        $tax_difference = $tax_total - round($order->info['tax']*100,0);
-        if ($tax_difference !=0){
-            reset($cartitems);
-            $cartitems[key($cartitems)]['vat_amount'] = $cartitems[key($cartitems)]['vat_amount'] - $tax_difference;
+        $tax_difference = $tax_total - round( $order->info['tax'] * 100, 0 );
+        if ( $tax_difference != 0 ) {
+            reset( $cartitems );
+            $cartitems[key( $cartitems )]['vat_amount'] = $cartitems[key( $cartitems )]['vat_amount'] - $tax_difference;
         }
 
         $sHashkey = '';
@@ -260,9 +256,9 @@ abstract class cgp_generic {
         if ( $this->payment_option == 'ideal' ) {
             $process_button_string .= zen_draw_hidden_field( 'suboption', $_POST['suboption'] );
         }
-        
+
         if ( count( $cartitems ) > 0 ) {
-            $process_button_string .= zen_draw_hidden_field( 'cartitems', json_encode( $cartitems, JSON_HEX_APOS | JSON_HEX_QUOT ));
+            $process_button_string .= zen_draw_hidden_field( 'cartitems', json_encode( $cartitems, JSON_HEX_APOS | JSON_HEX_QUOT ) );
         }
 
         return $process_button_string;

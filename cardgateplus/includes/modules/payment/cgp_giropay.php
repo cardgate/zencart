@@ -7,7 +7,7 @@
 * Zen-Cart version Copyright (c) 2011 GetZenned: http://www.getzenned.nl
 */
 
-$pos = strpos(__FILE__,'includes/modules/payment/'); 
+$pos = strpos(__FILE__,'includes/modules/payment/');
 $base_path = substr(__FILE__,0,$pos);
 require_once($base_path.'cardgateplus/cgp_generic.php');
 
