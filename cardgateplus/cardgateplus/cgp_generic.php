@@ -12,7 +12,7 @@ abstract class cgp_generic {
     var $debug = false;
     var $order_status = 0;
 
-    const version = '1.5.7';
+    const version = '1.5.8';
 
     function dump( $str ) {
         echo '<div style="color: #FFFFFF; background: #A0c0c0; border: 1px solid #000000;">';
