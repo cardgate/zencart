@@ -12,15 +12,7 @@ abstract class cgp_generic {
     var $debug = false;
     var $order_status = 0;
 
-    const version = '1.5.8';
-
-    function dump( $str ) {
-        echo '<div style="color: #FFFFFF; background: #A0c0c0; border: 1px solid #000000;">';
-        echo '<pre style="margin-left: 20px;">';
-        var_dump( $str );
-        echo '</pre>';
-        echo '</div>';
-    }
+    const version = '1.5.9';
 
 // class constructor
 
@@ -229,7 +221,7 @@ abstract class cgp_generic {
 
         $process_button_string = zen_draw_hidden_field( 'siteid', constant( $this->module_payment_type . '_SITEID' ) ) .
                 zen_draw_hidden_field( 'currency', $order->info['currency'] ) .
-                zen_draw_hidden_field( 'description', constant( $this->module_payment_type . '_DESCRIPTION' ) . ' - customer id:' . $customer_id ) .
+                zen_draw_hidden_field( 'description', 'CGP_Orders_id: '.$ref  ) .
                 zen_draw_hidden_field( 'option', $this->payment_option ) .
                 zen_draw_hidden_field( 'test', $cgp_test ) .
                 zen_draw_hidden_field( 'amount', $cgp_amount ) .
