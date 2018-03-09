@@ -13,7 +13,7 @@ This plugin supports ZenCart version **1.3.7.1** to **1.5.x**.
 ## Preparation
 
 The usage of this module requires that you have obtained CardGate security credentials.
-Please visit [My Cardgate](https://my.cardgate.com/) and retrieve your **Site ID** and **Hash key**, or contact your accountmanager.
+Please visit [My Cardgate](https://my.cardgate.com/) and retrieve your **Site ID** and **Hash Key**, or contact your accountmanager.
 
 ## Installation
 
