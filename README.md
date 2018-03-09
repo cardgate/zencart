@@ -1,14 +1,14 @@
 ![CardGate](https://cdn.curopayments.net/thumb/200/logos/cardgate.png)
 
-# CardGate module for Zencart
+# CardGate module for ZenCart
 
-[![Total Downloads](https://img.shields.io/packagist/dt/cardgate/prestashop16.svg)](https://packagist.org/packages/cardgate/prestashop16)
-[![Latest Version](https://img.shields.io/packagist/v/cardgate/prestashop16.svg)](https://github.com/cardgate/prestashop16/releases)
-[![Build Status](https://travis-ci.org/cardgate/prestashop16.svg?branch=master)](https://travis-ci.org/cardgate/prestashop16)
+[![Total Downloads](https://img.shields.io/packagist/dt/cardgate/zencart.svg)](https://packagist.org/packages/cardgate/zencart)
+[![Latest Version](https://img.shields.io/packagist/v/cardgate/zencart.svg)](https://github.com/cardgate/zencart/releases)
+[![Build Status](https://travis-ci.org/cardgate/zencart.svg?branch=master)](https://travis-ci.org/cardgate/zencart)
 
 ## Support
 
-This plugin supports PrestaShop version **1.3.7.1** to **1.5.x**.
+This plugin supports ZenCart version **1.3.7.1** to **1.5.x**.
 
 ## Preparation
 
