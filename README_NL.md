@@ -38,7 +38,7 @@ of vraag deze gegevens aan uw accountmanager.
 6. Ga naar [Mijn CardGate](https://my.cardgate.com/), kies **Sites** en selecteer de juiste site.
 
 7. Vul bij **Technische koppeling** de **Callback URL** in, bijvoorbeeld:  
-   **http://mijnwebshop.com/cardgateplus/cgp_process.php**
+   **http://mijnwebshop.com/cardgateplus/cgp_process.php**  
   (Vervang **http://mijnwebshop.com** met de URL van je webshop.)
 
 8. Zorg ervoor dat je na het testen omschakelt van **Test mode** naar **Active mode** en sla het op (**Save**).
