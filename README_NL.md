@@ -2,10 +2,6 @@
 
 # CardGate module voor ZenCart
 
-[![Total Downloads](https://img.shields.io/packagist/dt/cardgate/zencart.svg)](https://packagist.org/packages/cardgate/zencart)
-[![Latest Version](https://img.shields.io/packagist/v/cardgate/zencart.svg)](https://github.com/cardgate/zencart/releases)
-[![Build Status](https://travis-ci.org/cardgate/zencart.svg?branch=master)](https://travis-ci.org/cardgate/zencart)
-
 ## Support
 
 Deze plugin is geschikt voor ZenCart versies **1.3.7.1** tot en met **1.5.x**.
