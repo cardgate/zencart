@@ -10,12 +10,12 @@ Deze plugin is geschikt voor ZenCart versies **1.3.7.1** tot en met **1.5.x**.
 
 Voor het gebruik van deze module zijn CardGate inloggegevens noodzakelijk.
 
-Ga a.u.b. naar [Mijn CardGate](https://my.cardgate.com/) en kopieer de  Site ID and Codeersleutel,  
+Ga a.u.b. naar [Mijn CardGate](https://my.cardgate.com/) en kopieer de  site ID and hash key,  
 of vraag deze gegevens aan uw accountmanager.
 
 ## Installatie
 
-1. Download en unzip het **cardgateplus.zip** bestand op je bureaublad.
+1. Download en unzip de meest recente [source code](https://github.com/cardgate/zencart/releases) op je bureaublad.
 
 2. Upload de map **cardgateplus** en de map **includes** naar de **root** map van je webshop.
 
@@ -27,7 +27,7 @@ of vraag deze gegevens aan uw accountmanager.
 
 3. Selecteer de **CardGate module** die je wenst te installeren en klik rechts op **Install**.
 
-4. Vul de **Site ID** en de **Hash Key (Codeersleutel)** in, deze kun je vinden bij **Sites** op [Mijn CardGate](https://my.cardgate.com/).
+4. Vul de **site ID** en de **hash key** in, deze kun je vinden bij **Sites** op [Mijn CardGate](https://my.cardgate.com/).
 
 5. Vul de standaard **gateway taal** in, bijvoorbeeld **en** voor Engels of **nl** voor Nederlands.
 
