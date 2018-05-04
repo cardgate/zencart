@@ -196,7 +196,7 @@ foreach ( $data as $k => $v ) {
 echo 'files copied<br>';
 
 // Get real path for our folder
-$rootPath = '/home/richard/websites/zencart/htdocs/_plugin/cardgateplus';
+$rootPath = '/var/www/zencart/htdocs/_plugin/cardgateplus';
 $filename = 'cardgateplus.zip';
 
 zipfiles($filename, $rootPath);
