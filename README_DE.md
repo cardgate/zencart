@@ -4,7 +4,7 @@
 
 ## Support
 
-Dieses Modul is geeignet für ZenCart version **1.3.7.1** bis zum version **1.5.x**.
+Dieses Modul is geeignet für ZenCart Version **1.3.7.1** bis zu Version **1.5.x**.
 
 ## Vorbereitung
 
@@ -33,11 +33,10 @@ Gehen Sie zu [**Mein CardGate**](https://my.cardgate.com/) und fragen Sie Ihre *
 
 7. Füllen Sie bei **Schnittstelle** die **Callback URL** ein, zum Beispiel:  
    **http://meinwebshop.com/cardgateplus/cgp_process.php**  
-   (Tauschen Sie **http://meinwebshop.com** mit URL von Ihrem Webshop aus.)  
+   (Tauschen Sie **http://meinwebshop.com** mit der URL von Ihrem Webshop aus.)  
 
 8. Sorgen Sie dafür, dass Sie **nach dem Testen** von dem **Testmode** in den **Livemode** umschalten und klicken Sie auf **speichern**.
 
 ## Anforderungen
 
 Keine weiteren Anforderungen.
-
