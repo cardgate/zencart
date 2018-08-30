@@ -25,7 +25,7 @@ Please visit [**My CardGate**](https://my.cardgate.com/) and retrieve your **sit
 
 3. Select the **CardGate module** you wish to activate and click on **Install** on the right side.
 
-4. Enter the **site ID** and the **hash key**, which you can find at **Sites** on [My CardGate](https://my.cardgate.com/).
+4. Enter the **site ID** and the **hash key**, which you can find at **Sites** on [**My CardGate**](https://my.cardgate.com/).
 
 5. Enter the default **gateway language**, for example **en** for English or **nl** for Dutch.
 
