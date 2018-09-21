@@ -12,11 +12,11 @@ abstract class cgp_generic {
     var $debug = false;
     var $order_status = 0;
 
-    const version = '1.5.10';
+    const version = '1.5.11';
 
 // class constructor
 
-    function __construct() {
+    function __construct() { 
         return false;
     }
 
