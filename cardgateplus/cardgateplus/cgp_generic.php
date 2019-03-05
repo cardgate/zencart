@@ -274,8 +274,11 @@ abstract class cgp_generic {
         $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Hash key', '" . $this->module_payment_type . "_KEYCODE', '', 'CardGate hash key', '6', '23', now())" );
         // language
         $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Gateway language', '" . $this->module_payment_type . "_LANGUAGE', 'en', 'Gateway language', '6', '23', now())" );
-        // order status
+        // checkout display
+        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Checkout Display', '" . $this->module_payment_type . "_CHECKOUT_DISPLAY', 'Text', 'Display in the checkout', '6', '24','zen_cfg_select_option(array(\'Text\', \'Logo\', \'Text and Logo\'), ', now())" );
+        // initial order status
         $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) values ('Set Initial Order Status', '" . $this->module_payment_type . "_ORDER_INITIAL_STATUS_ID', '0', 'Set the status of orders made with this payment module to this value', '6', '0', 'zen_cfg_pull_down_order_statuses(', 'zen_get_order_status_name', now())" );
+        // paid order status
         $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) values ('Set Paid Order Status', '" . $this->module_payment_type . "_ORDER_PAID_STATUS_ID', '0', 'Set the status of orders paid with this payment module to this value', '6', '0', 'zen_cfg_pull_down_order_statuses(', 'zen_get_order_status_name', now())" );
         // zone
         $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, use_function, set_function, date_added) values ('Payment Zone', '" . $this->module_payment_type . "_ZONE', '0', 'If a zone is selected, only enable this payment method for that zone.', '6', '9', 'zen_get_zone_class_title', 'zen_cfg_pull_down_zone_classes(', now())" );
@@ -344,6 +347,7 @@ abstract class cgp_generic {
             $this->module_payment_type . '_SITEID',
             $this->module_payment_type . '_KEYCODE',
             $this->module_payment_type . '_LANGUAGE',
+            $this->module_payment_type . '_CHECKOUT_DISPLAY',
             $this->module_payment_type . '_ZONE',
             $this->module_payment_type . '_SORT_ORDER',
             $this->module_payment_type . '_ORDER_INITIAL_STATUS_ID',
@@ -353,7 +357,7 @@ abstract class cgp_generic {
         );
     }
 
-    function get_banks() {
+    public function get_banks() {
         $aBankOptions = $this->getBankOptions();
         $aBanks = array();
         foreach ( $aBankOptions as $id => $text ) {
@@ -366,12 +370,15 @@ abstract class cgp_generic {
     }
 
     private function getBankOptions() {
-        $url = 'https://secure.curopayments.net/cache/idealDirectoryCUROPayments.dat';
+       $cgp_test = (constant( $this->module_payment_type . '_MODE' ) === 'Test' ? '-staging' : '');
+       $url = 'https://secure'.$cgp_test.'.curopayments.net/cache/idealDirectoryCUROPayments.dat';
+       
         if ( !ini_get( 'allow_url_fopen' ) || !function_exists( 'file_get_contents' ) ) {
             $result = false;
         } else {
             $result = file_get_contents( $url );
         }
+
         if ( $result ) {
             $aBanks = unserialize( $result );
             $aBanks[0] = '-Maak uw keuze a.u.b.-';
@@ -381,14 +388,30 @@ abstract class cgp_generic {
     }
 
     function logo( $payment_option ) {
-
-        $protocol = (!empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
-        $domain_name = $_SERVER['HTTP_HOST'];
-        $file = $protocol . $domain_name . '/cardgateplus/images/' . $payment_option . '.jpg';
-
-        return '<img style="max-width: 80px;" src="' . $file . '" />&nbsp;';
+        $file = 'https://cdn.curopayments.net/images/paymentmethods/'.$payment_option.'.svg';
+        return '<img style="max-width:70px;max-height:30px;" width="40px;" src="' . $file . '" />&nbsp;';
     }
-
+    
+    function checkoutDisplay(){
+        $option = (defined($this->module_payment_type.'_CHECKOUT_DISPLAY') ? constant($this->module_payment_type.'_CHECKOUT_DISPLAY') : 'Text and Logo');
+        $text = constant($this->module_payment_type.'_TEXT_TITLE');
+        $logo = $this->logo($this->payment_option);
+        
+         switch ($option){
+             case 'Text':
+                $display = $text;
+                break;
+             case 'Logo':
+                 $display = $logo;
+                 break;
+             case 'Text and Logo':
+                 $display = $logo . ' '. $text;
+                 break;
+             default:
+                 $display = $logo . ' '. $text;
+         }
+         return $display;
+    }
 }
 
 ?>
