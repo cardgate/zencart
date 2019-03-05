@@ -22,7 +22,7 @@ class cgp_directdebit extends cgp_generic {
     function __construct() {
         global $order;
         $this->code = 'cgp_directdebit';
-        $this->title = $this->logo( $this->payment_option ) . constant( $this->module_payment_type . '_TEXT_TITLE' );
+        $this->title = $this->checkoutDisplay();
         $this->order_status = constant( $this->module_payment_type . '_ORDER_INITIAL_STATUS_ID' );
         $this->sort_order = constant( $this->module_payment_type . '_SORT_ORDER' );
         $this->description = constant( $this->module_payment_type . '_TEXT_DESCRIPTION' ) . ' <br><b>module version: ' . parent::version . '</b>';
