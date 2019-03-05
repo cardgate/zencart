@@ -11,18 +11,18 @@ $pos = strpos(__FILE__,'includes/modules/payment/');
 $base_path = substr(__FILE__,0,$pos);
 require_once($base_path.'cardgateplus/cgp_generic.php');
 
-class cgp_przelewy24 extends cgp_generic{
+class cgp_billink extends cgp_generic{
 
     var $debug 					= false;
-    var $module_payment_type 	= 'MODULE_PAYMENT_CGP_PRZELEWY24';
-    var $payment_option 		= 'przelewy24';
+    var $module_payment_type 	= 'MODULE_PAYMENT_CGP_BILLINK';
+    var $payment_option 	= 'billink';
     
     var $code, $title, $description, $enabled;
 
 	// class constructor
     function __construct() {
     	global $order;
-      	$this->code 			= 'cgp_przelewy24';
+      	$this->code 			= 'cgp_billink';
       	$this->title 			= $this->checkoutDisplay();
       	$this->order_status		= constant($this->module_payment_type.'_ORDER_INITIAL_STATUS_ID');
       	$this->sort_order 		= constant($this->module_payment_type.'_SORT_ORDER');
@@ -31,6 +31,6 @@ class cgp_przelewy24 extends cgp_generic{
       	$this->form_action_url 	= $this->cg_action_url();
       
       	if (is_object($order)) $this->update_status();
-    }    
+    }
 }
 ?>
