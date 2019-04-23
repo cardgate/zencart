@@ -12,7 +12,7 @@ abstract class cgp_generic {
     var $debug = false;
     var $order_status = 0;
 
-    const version = '1.5.11';
+    const version = '1.5.12';
 
 // class constructor
 
@@ -358,7 +358,9 @@ abstract class cgp_generic {
     }
 
     public function get_banks() {
-        $aBankOptions = $this->getBankOptions();
+        
+        $this->checkBanks();
+        $aBankOptions = $this->fetchBankOptions();
         $aBanks = array();
         foreach ( $aBankOptions as $id => $text ) {
             $aBanks[] = array(
@@ -368,10 +370,37 @@ abstract class cgp_generic {
         }
         return $aBanks;
     }
+    
+    private function checkBanks(){
+        global $db;
+         
+        $oResult = $db->execute("SELECT configuration_value FROM ". TABLE_CONFIGURATION ." WHERE configuration_key='MODULE_PAYMENT_CGP_IDEAL_ISSUER_REFRESH'");
+        $sIssuerRefresh = $oResult->fields['configuration_value'];
+     
+         if ($sIssuerRefresh=== NULL){
+            $db->execute("INSERT INTO ". TABLE_CONFIGURATION ."(configuration_title, configuration_key, configuration_value)
+                        VALUES ( 'Issuer Refresh', 'MODULE_PAYMENT_CGP_IDEAL_ISSUER_REFRESH',0)");
+        }
+      
+        $oResult = $db->execute("SELECT configuration_value FROM ". TABLE_CONFIGURATION ." WHERE configuration_key='MODULE_PAYMENT_CGP_IDEAL_ISSUER_REFRESH'");
+        
+        $iIssuerRefresh = (int) $oResult->fields['configuration_value'];
+ 
+        if ($iIssuerRefresh < time()) {
+            $this->cacheBankOptions();
+        }
+    }
 
-    private function getBankOptions() {
-       $cgp_test = (constant( $this->module_payment_type . '_MODE' ) === 'Test' ? '-staging' : '');
-       $url = 'https://secure'.$cgp_test.'.curopayments.net/cache/idealDirectoryCUROPayments.dat';
+    private function cacheBankOptions() {
+        global $db;
+        
+       $cgp_test = (constant( $this->module_payment_type . '_MODE' ) === 'Test' ? true : false);
+       
+       if ($cgp_test){
+            $url = 'https://secure-staging.curopayments.net/cache/idealDirectoryCUROPayments.dat';
+       } else {
+           $url = 'https://secure.curopayments.net/cache/idealDirectoryCUROPayments.dat';
+       }
        
         if ( !ini_get( 'allow_url_fopen' ) || !function_exists( 'file_get_contents' ) ) {
             $result = false;
@@ -382,9 +411,29 @@ abstract class cgp_generic {
         if ( $result ) {
             $aBanks = unserialize( $result );
             $aBanks[0] = '-Maak uw keuze a.u.b.-';
-            return $aBanks;
         }
-        return $result;
+        
+        $oResult = $db->execute("SELECT configuration_id FROM ". TABLE_CONFIGURATION ." WHERE configuration_key='MODULE_PAYMENT_CGP_IDEAL_ISSUERS'");
+        $iConfigurationId = $oResult->fields['configuration_id'];
+        
+        $sIssuers = serialize($aBanks);
+        if ($iConfigurationId === NuLL ){
+            $resultId = $db->execute("INSERT INTO ". TABLE_CONFIGURATION ."(configuration_title, configuration_key, configuration_value)
+                        VALUES ( 'Issuers', 'MODULE_PAYMENT_CGP_IDEAL_ISSUERS','".$sIssuers."')");
+        } else {
+            $resultId = $db->execute("UPDATE ". TABLE_CONFIGURATION ." SET configuration_value = '".$sIssuers ."' WHERE configuration_key = 'MODULE_PAYMENT_CGP_IDEAL_ISSUERS'");
+        }
+        $iIssuerRefresh = (24 * 60 * 60) + time();
+        $resultId = $db->execute("UPDATE ". TABLE_CONFIGURATION ." SET configuration_value = '".$iIssuerRefresh."' WHERE configuration_key = 'MODULE_PAYMENT_CGP_IDEAL_ISSUER_REFRESH'");
+    }
+    
+    function fetchBankOptions(){
+        global $db;
+        
+        $oResult = $db->execute("SELECT configuration_value FROM ". TABLE_CONFIGURATION ." WHERE configuration_key='MODULE_PAYMENT_CGP_IDEAL_ISSUERS'");
+        $sBanks = $oResult->fields['configuration_value']; 
+        $aBanks = unserialize($sBanks);
+        return $aBanks;
     }
 
     function logo( $payment_option ) {
