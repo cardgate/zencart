@@ -14,7 +14,7 @@ if ( isset( $_POST['hash'] ) ) {
 }
 $send_warning = false;
 chdir( '../' );
-require('includes/application_top.php');
+require( 'includes/application_top.php' );
 $language_page_directory = DIR_WS_LANGUAGES . $_SESSION['language'] . '/';
 
 // check if the order is meant to be cancelled
@@ -241,5 +241,5 @@ if ( isset( $_GET['status'] ) && $_GET['status'] == 'cancelled' ) {
     echo ($_POST['transactionid'] . '.' . $_POST['status_id']);
 }
 
-require('includes/application_bottom.php');
+require( 'includes/application_bottom.php' );
 ?>
