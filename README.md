@@ -1,6 +1,6 @@
 ![CardGate](https://cdn.curopayments.net/thumb/200/logos/cardgate.png)
 
-# CardGate Modul for ZenCart
+# CardGate Module for ZenCart
 
 ## Support
 
