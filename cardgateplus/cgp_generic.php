@@ -12,7 +12,7 @@ abstract class cgp_generic {
     var $debug = false;
     var $order_status = 0;
 
-    const version = '1.5.12';
+    const version = '1.5.13';
 
 // class constructor
 
@@ -415,16 +415,18 @@ abstract class cgp_generic {
         
         $oResult = $db->execute("SELECT configuration_id FROM ". TABLE_CONFIGURATION ." WHERE configuration_key='MODULE_PAYMENT_CGP_IDEAL_ISSUERS'");
         $iConfigurationId = $oResult->fields['configuration_id'];
-        
-        $sIssuers = serialize($aBanks);
-        if ($iConfigurationId === NuLL ){
-            $resultId = $db->execute("INSERT INTO ". TABLE_CONFIGURATION ."(configuration_title, configuration_key, configuration_value)
-                        VALUES ( 'Issuers', 'MODULE_PAYMENT_CGP_IDEAL_ISSUERS','".$sIssuers."')");
-        } else {
-            $resultId = $db->execute("UPDATE ". TABLE_CONFIGURATION ." SET configuration_value = '".$sIssuers ."' WHERE configuration_key = 'MODULE_PAYMENT_CGP_IDEAL_ISSUERS'");
+
+        if (array_key_exists("INGBNL2A", $aBanks)) {
+	        $sIssuers = serialize( $aBanks );
+	        if ( $iConfigurationId === null ) {
+		        $resultId = $db->execute( "INSERT INTO " . TABLE_CONFIGURATION . "(configuration_title, configuration_key, configuration_value)
+                        VALUES ( 'Issuers', 'MODULE_PAYMENT_CGP_IDEAL_ISSUERS','" . $sIssuers . "')" );
+	        } else {
+		        $resultId = $db->execute( "UPDATE " . TABLE_CONFIGURATION . " SET configuration_value = '" . $sIssuers . "' WHERE configuration_key = 'MODULE_PAYMENT_CGP_IDEAL_ISSUERS'" );
+	        }
+	        $iIssuerRefresh = ( 24 * 60 * 60 ) + time();
+	        $resultId       = $db->execute( "UPDATE " . TABLE_CONFIGURATION . " SET configuration_value = '" . $iIssuerRefresh . "' WHERE configuration_key = 'MODULE_PAYMENT_CGP_IDEAL_ISSUER_REFRESH'" );
         }
-        $iIssuerRefresh = (24 * 60 * 60) + time();
-        $resultId = $db->execute("UPDATE ". TABLE_CONFIGURATION ." SET configuration_value = '".$iIssuerRefresh."' WHERE configuration_key = 'MODULE_PAYMENT_CGP_IDEAL_ISSUER_REFRESH'");
     }
     
     function fetchBankOptions(){
