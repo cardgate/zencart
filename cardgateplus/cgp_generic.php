@@ -12,7 +12,7 @@ abstract class cgp_generic {
     var $debug = false;
     var $order_status = 0;
 
-    const version = '1.5.13';
+    const version = '1.5.14';
 
 // class constructor
 

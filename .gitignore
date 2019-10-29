@@ -25,6 +25,7 @@ includes/languages/dutch/modules/payment/*
 !includes/languages/dutch/modules/payment/cgp_ideal.php
 !includes/languages/dutch/modules/payment/cgp_idealqr.php
 !includes/languages/dutch/modules/payment/cgp_mistercash.php
+!includes/languages/dutch/modules/payment/cgp_onlineueberweisen.php
 !includes/languages/dutch/modules/payment/cgp_paypal.php
 !includes/languages/dutch/modules/payment/cgp_paysafecard.php
 !includes/languages/dutch/modules/payment/cgp_paysafecash.php
@@ -49,6 +50,7 @@ includes/languages/english/modules/payment/*
 !includes/languages/english/modules/payment/cgp_ideal.php
 !includes/languages/english/modules/payment/cgp_idealqr.php
 !includes/languages/english/modules/payment/cgp_mistercash.php
+!includes/languages/english/modules/payment/cgp_onlineueberweisen.php
 !includes/languages/english/modules/payment/cgp_paypal.php
 !includes/languages/english/modules/payment/cgp_paysafecard.php
 !includes/languages/english/modules/payment/cgp_paysafecash.php
@@ -71,6 +73,7 @@ includes/modules/payment/*
 !includes/modules/payment/cgp_ideal.php
 !includes/modules/payment/cgp_idealqr.php
 !includes/modules/payment/cgp_mistercash.php
+!includes/modules/payment/cgp_onlineueberweisen.php
 !includes/modules/payment/cgp_paypal.php
 !includes/modules/payment/cgp_paysafecard.php
 !includes/modules/payment/cgp_paysafecash.php
