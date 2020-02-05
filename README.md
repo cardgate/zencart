@@ -2,6 +2,8 @@
 
 # CardGate Module for ZenCart
 
+[![Build Status](https://travis-ci.org/cardgate/zencart.svg?branch=master)](https://travis-ci.org/cardgate/zencart)
+
 ## Support
 
 This plugin supports ZenCart version **1.3.7.1** to **1.5.x**.
