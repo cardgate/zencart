@@ -19,7 +19,7 @@ of vraag deze gegevens aan uw accountmanager.
 
 1. Download en unzip het meest recente [**cardgate.zip**](https://github.com/cardgate/zencart/releases) bestand op je bureaublad.
 
-2. Upload de map **cardgateplus** en de map **includes** naar de **root** map van je webshop.
+2. Upload de **cardgateplus** map en de **includes** map naar de **root** map van je webshop.
 
 ## Configuratie
 
