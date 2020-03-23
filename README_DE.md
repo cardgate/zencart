@@ -15,7 +15,7 @@ Gehen Sie zu [**Mein CardGate**](https://my.cardgate.com/) und fragen Sie Ihre *
 
 ## Installation
 
-1. Downloaden und entpacken Sie den aktuellsten [**Source Code**](https://github.com/cardgate/zencart/releases) auf Ihrem Desktop.
+1. Downloaden und entpacken Sie den aktuellsten [**cardgate.zip**](https://github.com/cardgate/zencart/releases) Datei auf Ihrem Desktop.
 
 2. Uploaden Sie den **cardgateplus-Ordner**, und den **includes-Ordner** in den **root-Ordner** Ihres Webshops. 
 

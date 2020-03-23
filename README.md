@@ -15,9 +15,9 @@ Please visit [**My CardGate**](https://my.cardgate.com/) and retrieve your **sit
 
 ## Installation
 
-1. Download and unzip the most recent [**source code**](https://github.com/cardgate/zencart/releases) file on your desktop.
+1. Download and unzip the most recent [**cardgate.zip**](https://github.com/cardgate/zencart/releases) file on your desktop.
 
-2. Upload the folder **cardgateplus** and the folder **includes** to the **root** folder of your webshop.
+2. Upload the **cardgateplus** folder and the **includes** folder to the **root** folder of your webshop.
 
 ## Configuration
 
