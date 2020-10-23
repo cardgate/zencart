@@ -23,14 +23,14 @@ class cgp_giftcard extends cgp_generic{
     function __construct() {
     	global $order;
       	$this->code 			= 'cgp_giftcard';
-      	$this->title 			= $this->checkoutDisplay();
-      	$this->order_status		= constant($this->module_payment_type.'_ORDER_INITIAL_STATUS_ID');
-      	$this->sort_order 		= constant($this->module_payment_type.'_SORT_ORDER');
-      	$this->description 		= constant($this->module_payment_type.'_TEXT_DESCRIPTION').' <br><b>module version: '.parent::version.'</b>';
-      	$this->enabled 			= $this->module_payment_type.'_STATUS';
-      	$this->form_action_url 	= $this->cg_action_url();
-      
-      	if (is_object($order)) $this->update_status();
+	    $this->title   = $this->checkoutDisplay();
+	    $this->enabled = $this->module_payment_type . '_STATUS';
+	    $this->order_status = $this->getOrderStatus();
+	    $this->sort_order   = $this->getSortOrder();
+	    $this->description  = $this->getDescription();
+	    $this->form_action_url 	= $this->cg_action_url();
+
+	    if (is_object($order)) $this->update_status();
     }    
 }
 ?>

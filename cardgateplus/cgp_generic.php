@@ -12,16 +12,17 @@ abstract class cgp_generic {
     var $debug = false;
     var $order_status = 0;
 
-    const version = '1.5.14';
+    var $version = '1.5.15';
 
 // class constructor
 
-    function __construct() { 
+    function __construct() {
         return false;
     }
 
     function cg_action_url() {
-        $cgp_test = (constant( $this->module_payment_type . '_MODE' ) === 'Test' ? true : false);
+    	$mode = $this->module_payment_type . '_MODE';
+        $cgp_test = defined($mode) && constant( $mode ) === 'Test';
         if ( $cgp_test ) {
             return "https://secure-staging.curopayments.net/gateway/cardgate/";
         } else {
@@ -171,7 +172,7 @@ abstract class cgp_generic {
 
         foreach ( $products as $product ) {
 
-            $aProductid = split( ':', $product['id'] );
+            $aProductid = explode( ':', $product['id'] );
             $productid = $aProductid[0];
 
             $result = $db->execute( "SELECT * FROM products WHERE products_id='" . $product['id'] . "'" );
@@ -181,8 +182,8 @@ abstract class cgp_generic {
             $item['quantity'] = $product['qty'];
             $item['sku'] = 'product_' . $productid;
             $item['name'] = $product['name'];
-            $item['price'] = round( $product['final_price'] / $item['quantity'] * 100, 0 );
-            $item['vat_amount'] = round( $product['tax'] / 100 * $item['price'], 0 );
+            $item['price'] = intval(round( $product['final_price'] / $item['quantity'] * 100, 0 ));
+            $item['vat_amount'] = intval(round( $product['tax'] / 100 * $item['price'], 0 ));
             $item['vat_inc'] = 0;
             $item['type'] = 1;
             $cartitems[] = $item;
@@ -199,8 +200,8 @@ abstract class cgp_generic {
             $item['quantity'] = 1;
             $item['sku'] = $order->info['shipping_module_code'];
             $item['name'] = $order->info['shipping_method'];
-            $item['price'] = round( $order->info['shipping_cost'] * 100, 0 );
-            $item['vat_amount'] = round( $order->info['shipping_tax'] * 100, 0 );
+            $item['price'] = intval(round( $order->info['shipping_cost'] * 100, 0 ));
+            $item['vat_amount'] = intval(round( $order->info['shipping_tax'] * 100, 0 ));
             $item['vat_inc'] = 0;
             $item['type'] = 2;
             $cartitems[] = $item;
@@ -241,7 +242,7 @@ abstract class cgp_generic {
                 zen_draw_hidden_field( 'return_url', zen_href_link( FILENAME_CHECKOUT_SUCCESS, '', 'SSL' ) . '&action=empty_cart' ) .
                 zen_draw_hidden_field( 'return_url_failed', $protocol . $domain_name . $file ) .
                 zen_draw_hidden_field( 'plugin_name', $this->code ) .
-                zen_draw_hidden_field( 'plugin_version', self::version ) .
+                zen_draw_hidden_field( 'plugin_version', $this->version ) .
                 zen_draw_hidden_field( 'shop_version', PROJECT_VERSION_MAJOR . '.' . PROJECT_VERSION_MINOR ) .
                 zen_draw_hidden_field( 'shop_name', 'ZenCart' ) .
                 zen_draw_hidden_field( 'hash', $sHashKey );
@@ -285,9 +286,9 @@ abstract class cgp_generic {
         // sort order
         $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Sort order of display.', '" . $this->module_payment_type . "_SORT_ORDER', '0', 'Sort order of display. Lowest is displayed first.', '6', '0' , now())" );
         // DROP TABLE ON UNINSTALL
-        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Drop table on deinstall', '" . $this->module_payment_type . "_DROP_TABLE', 'False', 'Drop the CGP_orders_table on deinstall of this module. ONLY DO THIS IF ALL THE ORDERS HAVE BEEN PROCESSED AND YOU ARE INSTALLING A NEWER VERSION OF THIS MODULE!', '6', '0', 'zen_cfg_select_option(array(\'False\', \'True\'), ', now())" );
+        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Drop table on deinstall', '" . $this->module_payment_type . "_DROP_TABLE', 'False', 'Drop the CGP_orders_table on deinstall of this module. <br>ONLY DO THIS IF ALL THE ORDERS HAVE BEEN PROCESSED!</br>', '6', '0', 'zen_cfg_select_option(array(\'False\', \'True\'), ', now())" );
         // Remember to rename the callback
-        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Control URL', '" . $this->module_payment_type . "_REMEMBER', '', 'Set the Control URL in your Card Gate Merchant back-office to: <br><b>" . $cgp_control . "</b>', '6', '0',true, now())" );
+        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Control URL', '" . $this->module_payment_type . "_REMEMBER', '$cgp_control', 'Set the Control URL in your Card Gate Merchant back-office to:', '6', '0', now())" );
 
         $query = 'CREATE TABLE IF NOT EXISTS `CGP_orders_table` (' .
                 'ref_id INT(11)  NOT NULL AUTO_INCREMENT PRIMARY KEY,' .
@@ -463,6 +464,22 @@ abstract class cgp_generic {
          }
          return $display;
     }
+
+    function getOrderStatus(){
+    	$status = $this->module_payment_type . '_ORDER_INITIAL_STATUS_ID';
+    	return defined($status)? constant( $status ) : null;
+    }
+
+    function getSortOrder(){
+    	$sortOrder = $this->module_payment_type . '_SORT_ORDER';
+    	return defined($sortOrder ) ? constant( $sortOrder ) : null;
+    }
+
+    function getDescription(){
+    	$descriptiom = $this->module_payment_type . '_TEXT_DESCRIPTION';
+    	return (defined($descriptiom)? constant( $descriptiom ) . ' <br><b>module version: ' .$this->version. '</b>': null);
+    }
+
 }
 
 ?>
