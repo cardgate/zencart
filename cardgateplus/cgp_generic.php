@@ -11,13 +11,24 @@ abstract class cgp_generic {
 
     var $debug = false;
     var $order_status = 0;
+	var $code, $title, $description, $enabled, $module_payment_type;
 
     var $version = '1.5.15';
 
 // class constructor
 
     function __construct() {
-        return false;
+	    global $order;
+	    $this->code    = 'cgp_'.$this->payment_option;
+	    $this->module_payment_type = 'MODULE_PAYMENT_CGP_'.strtoupper($this->payment_option);
+	    $this->title   = $this->checkoutDisplay();
+	    $this->description  = $this->getDescription();
+	    $this->enabled = $this->module_payment_type . '_STATUS';
+	    $this->order_status = $this->getOrderStatus();
+	    $this->sort_order   = $this->getSortOrder();
+	    $this->form_action_url 	= $this->cg_action_url();
+
+	    if (is_object($order)) $this->update_status();
     }
 
     function cg_action_url() {
@@ -477,7 +488,7 @@ abstract class cgp_generic {
 
     function getDescription(){
     	$descriptiom = $this->module_payment_type . '_TEXT_DESCRIPTION';
-    	return (defined($descriptiom)? constant( $descriptiom ) . ' <br><b>module version: ' .$this->version. '</b>': null);
+    	return (defined($descriptiom) ? '<b>module version: ' .$this->version. '</b></br>'.constant( $descriptiom ) : null);
     }
 
 }

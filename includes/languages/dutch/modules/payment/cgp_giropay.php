@@ -8,7 +8,7 @@
 */
 
   define('MODULE_PAYMENT_CGP_GIROPAY_TEXT_TITLE', 'Giropay');
-  define('MODULE_PAYMENT_CGP_GIROPAY_TEXT_DESCRIPTION', 'Neem contact op met Card Gate Plus (www.cardgate.com) voor informatie');
+  define('MODULE_PAYMENT_CGP_GIROPAY_TEXT_DESCRIPTION', 'U kunt zich <a href="https://www.cardgate.com/aanmelden/">hier</a> bij CardGate aanmelden voor een account.');
   define('MODULE_PAYMENT_CGP_GIROPAY_CONFIRMATION_TITLE', '(Via Card Gate Plus)');
   define('MODULE_PAYMENT_CGP_GIROPAY_CONFIRMATION_TEXT', '');
   define('MODULE_PAYMENT_CGP_GIROPAY_TEXT_ERROR', 'Er is een fout opgetreden');

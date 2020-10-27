@@ -6,31 +6,9 @@
  * Released under the GNU General Public License
  * Zen-Cart version Copyright (c) 2011 GetZenned: http://www.getzenned.nl
  */
+require_once(__DIR__ .'/../../../cardgateplus/cgp_generic.php');
 
-$pos = strpos(__FILE__,'includes/modules/payment/');
-$base_path = substr(__FILE__,0,$pos);
-require_once($base_path.'cardgateplus/cgp_generic.php');
+class cgp_sofortueberweisen extends cgp_generic{
 
-class cgp_sofortueberweisung extends cgp_generic{
-
-	var $debug 					= false;
-	var $module_payment_type 	= 'MODULE_PAYMENT_CGP_SOFORTUEBERWEISUNG';
-	var $payment_option 		= 'sofortueberweisung';
-
-	var $code, $title, $description, $enabled;
-
-	// class constructor
-	function __construct() {
-		global $order;
-		$this->code 			= 'cgp_sofortueberweisung';
-		$this->title   = $this->checkoutDisplay();
-		$this->enabled = $this->module_payment_type . '_STATUS';
-		$this->order_status = $this->getOrderStatus();
-		$this->sort_order   = $this->getSortOrder();
-		$this->description  = $this->getDescription();
-		$this->form_action_url 	= $this->cg_action_url();
-
-		if (is_object($order)) $this->update_status();
-	}
+	var $payment_option = 'sofortueberweisen';
 }
-?>

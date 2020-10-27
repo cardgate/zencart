@@ -8,7 +8,7 @@
 */
 
   define('MODULE_PAYMENT_CGP_PRZELEWY24_TEXT_TITLE', 'Przelewy24');
-  define('MODULE_PAYMENT_CGP_PRZELEWY24_TEXT_DESCRIPTION', 'Contact Card Gate Plus (www.cardgate.com) for accounts');
+  define('MODULE_PAYMENT_CGP_PRZELEWY24_TEXT_DESCRIPTION', 'You can sign up for a CardGate account  <a href="https://www.cardgate.com/en/sign-up/">here</a>.');
   define('MODULE_PAYMENT_CGP_PRZELEWY24_CONFIRMATION_TITLE', '(Via Card Gate Plus)');
   define('MODULE_PAYMENT_CGP_PRZELEWY24_CONFIRMATION_TEXT', '');
   define('MODULE_PAYMENT_CGP_PRZELEWY24_TEXT_ERROR', 'An error has occured');
