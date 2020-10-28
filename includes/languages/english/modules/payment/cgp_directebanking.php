@@ -8,7 +8,7 @@
 */
 
   define('MODULE_PAYMENT_CGP_DIRECTEBANKING_TEXT_TITLE', 'DirectEBanking');
-  define('MODULE_PAYMENT_CGP_DIRECTEBANKING_TEXT_DESCRIPTION', 'Contact Card Gate Plus (www.cardgate.com) for further information');
+  define('MODULE_PAYMENT_CGP_DIRECTEBANKING_TEXT_DESCRIPTION', 'You can sign up for a CardGate account  <a href="https://www.cardgate.com/en/sign-up/">here</a>.');
   define('MODULE_PAYMENT_CGP_DIRECTEBANKING_CONFIRMATION_TITLE', '');
   define('MODULE_PAYMENT_CGP_DIRECTEBANKING_CONFIRMATION_TEXT', '');
   define('MODULE_PAYMENT_CGP_DIRECTEBANKING_TEXT_ERROR', 'An error occured');

@@ -7,7 +7,7 @@
 * Zen-Cart version Copyright (c) 2011 GetZenned: http://www.getzenned.nl
 */
   define('MODULE_PAYMENT_CGP_MISTERCASH_TEXT_TITLE', 'Mister Cash');
-  define('MODULE_PAYMENT_CGP_MISTERCASH_TEXT_DESCRIPTION', 'Contact Card Gate Plus (www.cardgate.com) for accounts');
+  define('MODULE_PAYMENT_CGP_MISTERCASH_TEXT_DESCRIPTION', 'You can sign up for a CardGate account  <a href="https://www.cardgate.com/en/sign-up/">here</a>.');
   define('MODULE_PAYMENT_CGP_MISTERCASH_CONFIRMATION_TITLE', '');
   define('MODULE_PAYMENT_CGP_MISTERCASH_CONFIRMATION_TEXT', '');
   define('MODULE_PAYMENT_CGP_MISTERCASH_TEXT_ERROR', 'An error has occured');
