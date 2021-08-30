@@ -30,6 +30,7 @@ includes/languages/dutch/modules/payment/*
 !includes/languages/dutch/modules/payment/cgp_paysafecard.php
 !includes/languages/dutch/modules/payment/cgp_paysafecash.php
 !includes/languages/dutch/modules/payment/cgp_sofortbanking.php
+!includes/languages/dutch/modules/payment/cgp_spraypay.php
 !includes/languages/english
 includes/languages/english/*
 !includes/languages/english/modules
@@ -55,6 +56,7 @@ includes/languages/english/modules/payment/*
 !includes/languages/english/modules/payment/cgp_paysafecard.php
 !includes/languages/english/modules/payment/cgp_paysafecash.php
 !includes/languages/english/modules/payment/cgp_sofortbanking.php
+!includes/languages/english/modules/payment/cgp_spraypay.php
 includes/modules
 !includes/modules/*
 !includes/modules/payment
@@ -78,6 +80,7 @@ includes/modules/payment/*
 !includes/modules/payment/cgp_paysafecard.php
 !includes/modules/payment/cgp_paysafecash.php
 !includes/modules/payment/cgp_sofortbanking.php
+!includes/modules/payment/cgp_spraypay.php
 !README.md
 !README_DE.md
 !README_NL.md
