@@ -2,43 +2,54 @@
 
 # CardGate Module for ZenCart
 
-[![Build Status](https://travis-ci.org/cardgate/zencart.svg?branch=master)](https://travis-ci.org/cardgate/zencart)
 
-## Support
 
-This plugin supports ZenCart version **1.3.7.1** to **1.5.x**.
+Source
+------
 
-## Preparation
+The Zen Cart source code is available at: https://github.com/zencart/zencart
 
-The usage of this module requires that you have obtained CardGate security credentials.  
-Please visit [**My CardGate**](https://my.cardgate.com/) and retrieve your **site ID** and **hash key**, or contact your accountmanager.
+Support
+-------
+For free community-driven support with Zen Cart, visit our support site: https://www.zen-cart.com/forum.php
 
-## Installation
 
-1. Download and unzip the most recent [**cardgate.zip**](https://github.com/cardgate/zencart/releases) file on your desktop.
+Donations/Sponsorship
+---------------------
+Sponsorship through GitHub is a simple and convenient way to say "thank you" to Zen Cart's maintainers and contributors, and to help fund its ongoing development.
 
-2. Upload the **cardgateplus** folder and the **includes** folder to the **root** folder of your webshop.
+Just click the "Sponsor" button [on the Zen Cart page on GitHub](https://github.com/zencart/zencart). 
 
-## Configuration
+If your company uses Zen Cart, note that sponsorship and donations to the project are a valid regular business expense.
 
-1. Go to the **admin** section of your webshop.
+You may also donate via our website at https://www.zen-cart.com/donate
 
-2. Select **Modules, Payment**.
 
-3. Select the **CardGate module** you wish to activate and click on **Install** on the right side.
+Security
+--------
+We take security very seriously.
 
-4. Enter the **site ID** and the **hash key**, which you can find at **Sites** on [**My CardGate**](https://my.cardgate.com/).
+If you have discovered a critical security bug in Zen Cart, please email security [at] zen-cart [.] com with the details of the problem and how to trigger it.  Issues will be responded to in a timely manner.
 
-5. Enter the default **gateway language**, for example **en** for English or **nl** for Dutch.
 
-6. Go to [**My CardGate**](https://my.cardgate.com/), choose **Sites** and select the appropriate site.
+Follow Us
+---------
+For news and updates about Zen Cart&reg;, follow us on [Twitter](http://twitter.com/zencart) and [Facebook](http://facebook.com/zencart)
 
-7. Go to **Connection to the website** and enter the **Callback URL**, for example:  
-   **http://mywebshop.com/cardgateplus/cgp_process.php**  
-   (Replace **http://mywebshop.com** with the URL of your webshop)
+Sign up for our free [Newsletter](http://eepurl.com/bafnNj)
 
-8. When you are **finished testing** make sure that you switch from **Test mode** to **Active mode** and save it (**Save**).
+Subscribe to [Critical News Updates And Release Announcements](https://www.zen-cart.com/subscription.php?do=addsubscription&f=2)
 
-## Requirements
+&nbsp;  
 
-No further requirements.
+<p>This project is supported by:</p>
+<p>
+  <a href="https://www.digitalocean.com/">
+    <img src="https://opensource.nyc3.cdn.digitaloceanspaces.com/attribution/assets/SVG/DO_Logo_horizontal_blue.svg" width="201px">
+  </a>
+</p>
+
+&nbsp;  
+
+*&copy;Copyright 2003-2022, Zen Cart&reg;. All rights reserved.*
+
