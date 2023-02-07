@@ -7,11 +7,6 @@
  * Released under the GNU General Public License
  * Zen-Cart version Copyright (c) 2011 GetZenned: http://www.getzenned.nl
  */
-$cgp_hash = '';
-if ( isset( $_POST['hash'] ) ) {
-    $cgp_hash = $_POST['hash'];
-    unset( $_POST['hash'] );
-}
 $send_warning = false;
 chdir( '../' );
 require( 'includes/application_top.php' );
@@ -151,8 +146,8 @@ if ( isset( $_GET['status'] ) && $_GET['status'] == 'cancelled' ) {
             $cgp_test = '';
         }
 
-        $hashVerify = md5( $cgp_test . $_POST['transactionid'] . $order_info['currency'] . $order_info['amount'] . $order_info['ref'] . $_POST['status'] . constant( strtoupper( 'module_payment_' . $_SESSION['payment'] . '_keycode' ) ) );
-        if ( $hashVerify != $cgp_hash ) {
+        $hashVerify = md5( $cgp_test . $_POST['transactionid'] . $order_info['currency'] . $order_info['amount'] . $order_info['ref'] . $_POST['status'] . constant( strtoupper( 'module_payment_' . $_SESSION['payment'] . '_hashkey' ) ) );
+        if ( $hashVerify != $_POST['hash'] ) {
             // Transaction not OK
             exit( 'Hash verification failed.' );
         }
@@ -161,9 +156,7 @@ if ( isset( $_GET['status'] ) && $_GET['status'] == 'cancelled' ) {
         // check if table needs to be changed
 
         $transactiom_id_column = $db->execute( "SHOW FIELDS FROM CGP_orders_table where Field ='transaction_id'" );
-        
-        
-                
+
         if ( $transactiom_id_column->fields['Type'] == 'int(11)' ) {
             $db->execute( 'ALTER TABLE CGP_orders_table MODIFY transaction_id CHAR(32)' );
         }

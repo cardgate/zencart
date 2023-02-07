@@ -228,8 +228,8 @@ abstract class cgp_generic {
         }
 
         $sHashkey = '';
-        if ( '' != constant( $this->module_payment_type . '_KEYCODE' ) )
-            $sHashKey = md5( ($cgp_test == 1 ? "TEST" : "") . constant( $this->module_payment_type . '_SITEID' ) . $cgp_amount . $cardgate_ref . constant( $this->module_payment_type . '_KEYCODE' ) );
+        if ( '' != constant( $this->module_payment_type . '_HASHKEY' ) )
+            $sHashKey = md5( ($cgp_test == 1 ? "TEST" : "") . constant( $this->module_payment_type . '_SITEID' ) . $cgp_amount . $cardgate_ref . constant( $this->module_payment_type . '_HASHKEY' ) );
 
         $process_button_string = zen_draw_hidden_field( 'siteid', constant( $this->module_payment_type . '_SITEID' ) ) .
                 zen_draw_hidden_field( 'currency', $order->info['currency'] ) .
@@ -279,27 +279,30 @@ abstract class cgp_generic {
         $domain_name = $_SERVER['HTTP_HOST'] . '/';
         $cgp_control = $protocol . $domain_name . 'cardgateplus/cgp_process.php';
         // mode (test or active)
-        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('CGP Status Mode', '" . $this->module_payment_type . "_MODE', 'Test', 'Status mode for CGP payments? (test or active)', '6', '21','zen_cfg_select_option(array(\'Test\', \'Active\'), ', now())" );
-        // siteid
-        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Site ID', '" . $this->module_payment_type . "_SITEID', '', 'CardGate site ID', '6', '22', now())" );
-        // hash key
-        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Hash key', '" . $this->module_payment_type . "_KEYCODE', '', 'CardGate hash key', '6', '23', now())" );
-        // language
-        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Gateway language', '" . $this->module_payment_type . "_LANGUAGE', 'en', 'Gateway language', '6', '23', now())" );
-        // checkout display
-        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Checkout Display', '" . $this->module_payment_type . "_CHECKOUT_DISPLAY', 'Text', 'Display in the checkout', '6', '24','zen_cfg_select_option(array(\'Text\', \'Logo\', \'Text and Logo\'), ', now())" );
-        // initial order status
-        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) values ('Set Initial Order Status', '" . $this->module_payment_type . "_ORDER_INITIAL_STATUS_ID', '0', 'Set the status of orders made with this payment module to this value', '6', '0', 'zen_cfg_pull_down_order_statuses(', 'zen_get_order_status_name', now())" );
-        // paid order status
-        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) values ('Set Paid Order Status', '" . $this->module_payment_type . "_ORDER_PAID_STATUS_ID', '0', 'Set the status of orders paid with this payment module to this value', '6', '0', 'zen_cfg_pull_down_order_statuses(', 'zen_get_order_status_name', now())" );
-        // zone
-        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, use_function, set_function, date_added) values ('Payment Zone', '" . $this->module_payment_type . "_ZONE', '0', 'If a zone is selected, only enable this payment method for that zone.', '6', '9', 'zen_get_zone_class_title', 'zen_cfg_pull_down_zone_classes(', now())" );
-        // sort order
-        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Sort order of display.', '" . $this->module_payment_type . "_SORT_ORDER', '0', 'Sort order of display. Lowest is displayed first.', '6', '0' , now())" );
-        // DROP TABLE ON UNINSTALL
-        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Drop table on deinstall', '" . $this->module_payment_type . "_DROP_TABLE', 'False', 'Drop the CGP_orders_table on deinstall of this module. <br>ONLY DO THIS IF ALL THE ORDERS HAVE BEEN PROCESSED!</br>', '6', '0', 'zen_cfg_select_option(array(\'False\', \'True\'), ', now())" );
-        // Remember to rename the callback
-        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Control URL', '" . $this->module_payment_type . "_REMEMBER', '$cgp_control', 'Set the Control URL in your Card Gate Merchant back-office to:', '6', '0', now())" );
+        $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('CGP Status Mode', '" . $this->module_payment_type . "_MODE', 'Test', 'Status mode for CGP payments (test or active)', '6', '1','zen_cfg_select_option(array(\'Test\', \'Active\'), ', now())" );
+        if ($this->module_payment_type == "MODULE_PAYMENT_CGP_CARDGATE") {
+            // siteid
+            $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Site ID', '" . $this->module_payment_type . "_SITEID', '', 'CardGate Site ID', '6', '2', now())" );
+            // hash key
+            $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Hash key', '" . $this->module_payment_type . "_HASHKEY', '', 'CardGate Hash key', '6', '3', now())" );
+            // merchant id
+            $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Merchant ID', '" . $this->module_payment_type . "_MERCHANTID', '', 'CardGate Merchant ID', '6', '4', now())" );
+            // api key
+            $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, set_function, use_function) values ('API key', '" . $this->module_payment_type . "_APIKEY', '', 'CardGate API key', '6', '5', now(),'zen_cfg_password_input(', 'zen_cfg_password_display')" );
+            // language
+            $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Gateway language', '" . $this->module_payment_type . "_LANGUAGE', 'en', 'Gateway language', '6', '6', now())" );
+        } else {
+            // checkout display
+            $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Checkout Display', '" . $this->module_payment_type . "_CHECKOUT_DISPLAY', 'Text', 'Display in the checkout', '6', '7','zen_cfg_select_option(array(\'Text\', \'Logo\', \'Text and Logo\'), ', now())" );
+            // initial order status
+            $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) values ('Set Initial Order Status', '" . $this->module_payment_type . "_ORDER_INITIAL_STATUS_ID', '0', 'Set the status of orders made with this payment module to this value', '6', '8', 'zen_cfg_pull_down_order_statuses(', 'zen_get_order_status_name', now())" );
+            // paid order status
+            $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) values ('Set Paid Order Status', '" . $this->module_payment_type . "_ORDER_PAID_STATUS_ID', '0', 'Set the status of orders paid with this payment module to this value', '6', '9', 'zen_cfg_pull_down_order_statuses(', 'zen_get_order_status_name', now())" );
+            // zone
+            $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, use_function, set_function, date_added) values ('Payment Zone', '" . $this->module_payment_type . "_ZONE', '0', 'If a zone is selected, only enable this payment method for that zone.', '6', '10', 'zen_get_zone_class_title', 'zen_cfg_pull_down_zone_classes(', now())" );
+            // sort order
+            $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Sort order of display.', '" . $this->module_payment_type . "_SORT_ORDER', '0', 'Sort order of display. Lowest is displayed first.', '6', '11' , now())" );
+        }
 
         $query = 'CREATE TABLE IF NOT EXISTS `CGP_orders_table` (' .
                 'ref_id INT(11)  NOT NULL AUTO_INCREMENT PRIMARY KEY,' .
@@ -357,15 +360,15 @@ abstract class cgp_generic {
         return array(
             $this->module_payment_type . '_MODE',
             $this->module_payment_type . '_SITEID',
-            $this->module_payment_type . '_KEYCODE',
+            $this->module_payment_type . '_HASHKEY',
+            $this->module_payment_type . '_MERCHANTID',
+            $this->module_payment_type . '_APIKEY',
             $this->module_payment_type . '_LANGUAGE',
             $this->module_payment_type . '_CHECKOUT_DISPLAY',
             $this->module_payment_type . '_ZONE',
             $this->module_payment_type . '_SORT_ORDER',
             $this->module_payment_type . '_ORDER_INITIAL_STATUS_ID',
-            $this->module_payment_type . '_ORDER_PAID_STATUS_ID',
-            $this->module_payment_type . '_DROP_TABLE',
-            $this->module_payment_type . '_REMEMBER'
+            $this->module_payment_type . '_ORDER_PAID_STATUS_ID'
         );
     }
 
