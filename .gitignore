@@ -1,6 +1,9 @@
 *
 !.gitignore
 !cardgate
+!cardgate/*
+!cardgate/cardgate-clientlib-php
+!cardgate/cardgate-clientlib-php/*
 !cardgate/cg_generic.php
 !cardgate/cg_process.php
 !includes
