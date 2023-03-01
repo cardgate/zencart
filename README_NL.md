@@ -12,14 +12,13 @@ Deze plugin is geschikt voor ZenCart versies **1.3.7.1** tot en met **1.5.x**.
 
 Voor het gebruik van deze module zijn CardGate inloggegevens noodzakelijk.
 
-Ga a.u.b. naar [**Mijn CardGate**](https://my.cardgate.com/) en kopieer de  site ID and hash key,  
-of vraag deze gegevens aan uw accountmanager.
+Vraag deze gegevens aan uw accountmanager.
 
 ## Installatie
 
 1. Download en unzip het meest recente [**cardgate.zip**](https://github.com/cardgate/zencart/releases) bestand op je bureaublad.
 
-2. Upload de **cardgateplus** map en de **includes** map naar de **root** map van je webshop.
+2. Upload de **cardgate** map en de **includes** map naar de **root** map van je webshop.
 
 ## Configuratie
 
@@ -27,19 +26,15 @@ of vraag deze gegevens aan uw accountmanager.
 
 2. Selecteer **Modules, Payment**.
 
-3. Selecteer de **CardGate module** die je wenst te installeren en klik rechts op **Install**.
+3. Selecteer de **CardGate module** en klik rechts op **Install**.
 
-4. Vul de **site ID** en de **hash key** in, deze kun je vinden bij **Sites** op [**Mijn CardGate**](https://my.cardgate.com/).
+4. Vul de **vier inloggegevens** in, die je van je accountmanager gekregen hebt.
 
 5. Vul de standaard **gateway taal** in, bijvoorbeeld **en** voor Engels of **nl** voor Nederlands.
 
-6. Ga naar [**Mijn CardGate**](https://my.cardgate.com/), kies **Sites** en selecteer de juiste site.
+6. Installeer hierna de gewenste **CardGate** betaalmethoden.
 
-7. Vul bij **Technische koppeling** de **Callback URL** in, bijvoorbeeld:  
-   **http://mijnwebshop.com/cardgateplus/cgp_process.php**  
-  (Vervang **http://mijnwebshop.com** met de URL van je webshop.)
-
-8. Zorg ervoor dat je na het testen omschakelt van **Test mode** naar **Active mode** en sla het op (**Save**).
+7. Zorg ervoor dat je na het testen omschakelt van **Test mode** naar **Active mode** en sla het op (**Save**).
 
 ## Vereisten
 
