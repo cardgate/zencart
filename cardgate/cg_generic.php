@@ -13,7 +13,7 @@ abstract class cg_generic {
     var $order_status = 0;
 	var $code, $title, $description, $enabled, $module_payment_type;
 
-    var $version = '1.5.16';
+    var $version = '1.5.17';
 
 // class constructor
 
