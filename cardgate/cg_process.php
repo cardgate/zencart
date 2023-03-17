@@ -19,219 +19,270 @@ chdir( '../' );
 require_once( 'includes/application_top.php' );
 require_once('includes/defined_paths.php');
 
-$language_page_directory = DIR_WS_LANGUAGES . $_SESSION['language'] . '/';
-include ($language_page_directory . 'checkout_process.php');
+$sLanguageDir = DIR_WS_LANGUAGES . $_SESSION['language'] . '/';
+include_once ($sLanguageDir . 'checkout_process.php');
+class cardgate
+{
+    protected $sHashKey;
+    protected $iReference;
+    protected $iAmount;
+    protected $sCurrency;
+    protected $iCode;
+    protected $sTransaction;
+    protected $bIsTestMode;
+    protected $sHash;
+    protected $aCardgateOrder;
 
-// check if the order is meant to be cancelled
-if ( isset( $_POST['status'] ) && $_POST['status'] == 'failure' ) {
-    $reference = ( int ) $_POST['reference'];
-    $order_query = $db->Execute( "select * from CGP_orders_table where ref_id = '" . $reference . "'" );
-    if ( $order_query->RecordCount() > 0 ) {
+    public function __construct($aCallback) {
+        $this->setHashkey();
+        $this->setReference ($aCallback['reference']);
+        $this->setAmount ($aCallback['amount']);
+        $this->setCurrency ($aCallback['currency']);
+        $this->setCode ($aCallback['code']);
+        $this->setTransaction($aCallback['transaction']);
+        $this->setIsTestMode($aCallback['testmode']);
+        $this->setHash($aCallback['cardgatehash']);
+    }
 
-        $order = $order_query->fields;
+    private function setHashkey(){
+        $this->sHashKey = constant( 'MODULE_PAYMENT_CG_CARDGATE_HASHKEY');
+    }
 
-        if ( $order['status'] == 0 && $order['transaction_id'] == 0 ) {
-            $sql_data_array = array( 'transaction_id' => -1,
-                'status' => 0 );
+    private function getHashkey(){
+       return $this->sHashKey;
+    }
 
-            zen_db_perform( 'CGP_orders_table', $sql_data_array, 'update', 'ref_id=' . $reference );
+    private function setReference($reference){
+        $this->iReference = (int) $reference;
+    }
 
-            require(DIR_WS_CLASSES . 'shipping.php');
-            require(DIR_WS_CLASSES . 'payment.php');
-            $_SESSION = unserialize( $order['sessionstr'] );
-            $products = $_SESSION['cart']->get_products();
+    private function getReference(){
+        return $this->iReference;
+    }
 
-            // include the constants for the payment module
-            include (DIR_WS_MODULES . 'payment/' . $_SESSION['payment'] . '.php');
-            $payment_modules = new payment( $_SESSION['payment'] );
-            $payment_module = $payment_modules->paymentClass;
-            $shipping_modules = new shipping( $_SESSION['shipping'] );
-            require(DIR_WS_CLASSES . 'order.php');
-            $order = new order;
-            require(DIR_WS_CLASSES . 'order_total.php');
-            $order_total_modules = new order_total();
-            $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_BEFORE_ORDER_TOTALS_PROCESS' );
-            $order_totals = $order_total_modules->process();
-            $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_AFTER_ORDER_TOTALS_PROCESS' );
-            $insert_id = $order->create( $order_totals );
-            $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_AFTER_ORDER_CREATE' );
+    private function setAmount($amount){
+        $this->iAmount = (int) $amount;
+    }
 
-            // status = cancelled
-            $status_cancelled = 1001;
-            $sql = "UPDATE " . TABLE_ORDERS . "
-	                 	SET orders_status = " . ( int ) $status_cancelled . "
-	                 	WHERE orders_id = '" . ( int ) $insert_id . "'";
-            $db->Execute( $sql );
+    private function getAmount(){
+        return $this->iAmount;
+    }
 
-            $sql_data_array = array( 'orders_id' => ( int ) $insert_id,
-                'orders_status_id' => ( int ) $status_cancelled,
-                'date_added' => 'now()',
-                'comments' => 'CardGate status: ' . $_POST['code'],
-                'customer_notified' => 0
-            );
+    private function setCurrency($currency){
+        $this->sCurrency = (string) $currency;
+    }
 
-            zen_db_perform( TABLE_ORDERS_STATUS_HISTORY, $sql_data_array );
-            $order->create_add_products( $insert_id, 2 );
-            $_SESSION['order_number_created'] = $insert_id;
-            $GLOBALS[$_SESSION['payment']]->transaction_id = $_POST['transactionid'];
-            $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_AFTER_ORDER_CREATE_ADD_PRODUCTS' );
-            $order->send_order_email( $insert_id, 2 );
-            $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_AFTER_SEND_ORDER_EMAIL' );
-            // Prepare sales-tracking data for use by notifier class
-            $ototal = $order_subtotal = $credits_applied = 0;
-            for ( $i = 0, $n = sizeof( $order_totals ); $i < $n; $i++ ) {
-                if ( $order_totals[$i]['code'] == 'ot_subtotal' )
-                    $order_subtotal = $order_totals[$i]['value'];
-                if ( $$order_totals[$i]['code']->credit_class == true )
-                    $credits_applied += $order_totals[$i]['value'];
-                if ( $order_totals[$i]['code'] == 'ot_total' )
-                    $ototal = $order_totals[$i]['value'];
-            }
-            $commissionable_order = ($order_subtotal - $credits_applied);
-            $commissionable_order_formatted = $currencies->format( $commissionable_order );
-            $_SESSION['order_summary']['order_number'] = $insert_id;
-            $_SESSION['order_summary']['order_subtotal'] = $order_subtotal;
-            $_SESSION['order_summary']['credits_applied'] = $credits_applied;
-            $_SESSION['order_summary']['order_total'] = $ototal;
-            $_SESSION['order_summary']['commissionable_order'] = $commissionable_order;
-            $_SESSION['order_summary']['commissionable_order_formatted'] = $commissionable_order_formatted;
-            $_SESSION['order_summary']['coupon_code'] = $order->info['coupon_code'];
-            $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_HANDLE_AFFILIATES', 'cardgateipn' );
+    private function getCurrency(){
+        return $this->sCurrency;
+    }
 
-            // add products that have been subtracted by the order.
-            for ( $i = 0, $n = sizeof( $products ); $i < $n; $i++ ) {
+    private function setCode($code){
+        $this->iCode =(int) $code;
+    }
 
-                // check if product is not virtual
-                $sql = 'SELECT products_virtual FROM ' . TABLE_PRODUCTS . ' WHERE products_id = ' . $products[$i]['id'];
-                $product_result = $db->Execute( $sql );
-                $virtual = $product_result->fields['products_virtual'];
-                if ( STOCK_LIMITED == 'true' ) {
-                    $sql = "UPDATE " . TABLE_PRODUCTS . "
-		                 	SET products_quantity = products_quantity+" . ( int ) $products[$i]['quantity'] . "
-		                 	WHERE products_id = " . ( int ) $products[$i]['id'];
-                    $db->Execute( $sql );
-                }
+    private function getCode(){
+       return $this->iCode;
+    }
+
+    private function setTransaction($transaction){
+        $this->sTransaction = (string) $transaction;
+    }
+
+    private function getTransaction(){
+        return $this->sTransaction;
+    }
+
+    private function setIsTestMode($testMode){
+        $this->bIsTestMode = (bool) $testMode;
+    }
+
+    private function getIsTestMode(){
+        return $this->bIsTestMode;
+    }
+
+    private function setHash($hash){
+        $this->sHash = (string) $hash;
+    }
+
+    private function getHash(){
+        return $this->sHash;
+    }
+
+    private function setCardgateOrder(){
+        global $db;
+        $aCardgateOrder = false;
+        $qData = $db->Execute( "select * from CGP_orders_table where ref_id = '" . $this->iReference . "'" );
+        if ( $qData->RecordCount() > 0 ) {
+            $aCardgateOrder = $qData->fields;
+        }
+        $this->aCardgateOrder = $aCardgateOrder;
+    }
+
+    private function getCardgateOrder(){
+        return $this->aCardgateOrder;
+    }
+
+    public function hashCheck(){
+        $sTest = $this->getIsTestMode() ? 'TEST':'';
+        $hashVerify = md5( $sTest .
+                           $this->getTransaction() .
+                           $this->getCurrency() .
+                           $this->getAmount() .
+                           $this->getReference() .
+                           $this->getCode() .
+                           $this->getHashkey()
+        );
+        return $this->getHash() === $hashVerify;
+    }
+
+    private function restoreStock($aProducts){
+       global $db;
+        foreach ($aProducts as $product){
+            $oProduct = $db->Execute('SELECT products_virtual FROM ' . TABLE_PRODUCTS . ' WHERE products_id = ' . $product['id'] );
+            $virtual = (bool) $oProduct->fields['products_virtual'];
+            if (!$virtual){
+                $sql = "UPDATE " . TABLE_PRODUCTS .
+                       " SET products_quantity = products_quantity+" . ( int ) $product['quantity'] .
+                       " WHERE products_id = " . ( int ) $product['id'];
+                $db->Execute( $sql );
             }
         }
     }
-    zen_redirect( zen_href_link( FILENAME_CHECKOUT_PAYMENT, '', 'SSL' ) );
-    exit;
-} else {
 
-    // Check if it is a callback from CardGate and process
-    $reference= ( int ) $_POST['reference'];
-    $amount = ( int ) $_POST['amount'];
-    $currency = $_POST['currency'];
-    $code = $_POST['code'];
-    $transaction = $_POST['transaction'];
-    $is_test = ( int ) $_POST['is_test'];
-    $status = ( int ) $_POST['status'];
-
-
-    $order_query = $db->Execute( "select * from CGP_orders_table where ref_id = '" . $reference. "'" );
-
-    if ( $order_query->RecordCount() > 0 ) {
-
-        $order = $order_query->fields;
-        $order_info = unserialize( $order['orderstr'] );
-
-        $_SESSION = unserialize( $order['sessionstr'] );
-        $cart = $_SESSION['cart'];
-        include (DIR_WS_MODULES . 'payment/' . $_SESSION['payment'] . '.php');
-        require(DIR_WS_CLASSES . 'shipping.php');
-        require(DIR_WS_CLASSES . 'payment.php');
-        $payment_modules = new payment( $_SESSION['payment'] );
-        $payment_module = $payment_modules->paymentClass;
-        $cg_test = $order['is_test'] == 1 ? 'TEST' : '';
-
-        $hashVerify = md5( $cg_test .
-                           $transaction .
-                           $currency .
-                           $amount .
-                           $reference .
-                           $code .
-                           constant( strtoupper( 'MODULE_PAYMENT_CG_CARDGATE_HASHKEY' ) )
-        );
-
-        if ( $hashVerify != $_POST['cardgatehash'] ) {
-            // Transaction not OK
-            exit( 'Hash verification failed.' );
+    private function getTransactionInfo($code){
+        if ($code == 0){
+            $sComment = 'Payment pending, waiting for acquirer.';
+            $iStatusUpdate = 1;
+        }elseif ($code >= 200 && $code < 300){
+            $sComment = 'Payment completed.';
+            $iStatusUpdate = 2;
+        } elseif ($code >= 300 && $code < 400){
+            $status = $code == 309 ? 'canceled' : 'failed;';
+            $sComment = 'Payment '.$status.'';
+            $iStatusUpdate = 4;
+        }elseif ($code >= 700 && $code < 800){
+            $sComment = 'Payment pending, waiting for confirmation from the bank.';
+            $iStatusUpdate = 1;
         }
+        $sComment .= '<br>CardGate status: '.$code;
+        return ['comment' => $sComment, 'status' =>$iStatusUpdate];
+    }
 
-        // transaction data has been verified and is correct.
-        if ( $order['amount'] == $amount && $order['status'] == 0 && $order['transaction_id'] == 0 ) {
-            $sql_data_array = array( 'transaction_id' => $transaction,
-                'status' => $_POST['code'] );
+    private function updateOrder($aInfo, $orderId){
+        $aData = ["orders_status" => $aInfo['status']];
+        zen_db_perform( TABLE_ORDERS, $aData, 'update', 'orders_id=' . $orderId );
 
-            zen_db_perform( 'CGP_orders_table', $sql_data_array, 'update', 'ref_id=' . $reference);
+        $aData = array( 'orders_id' => $orderId,
+                        'orders_status_id' => $aInfo['status'],
+                        'date_added' => 'now()',
+                        'comments' => $aInfo['comment'],
+                        'customer_notified' => 1
+        );
+        zen_db_perform( TABLE_ORDERS_STATUS_HISTORY, $aData );
+    }
 
-            // include the constants for the payment module
+    private function isProcessed(){
+        $this->setCardgateOrder();
+        $iStatus = $this->getCardgateOrder()['status'];
+        return ($iStatus >=200 && $iStatus < 400);
+    }
 
-            $shipping_modules = new shipping( $_SESSION['shipping'] );
-            require(DIR_WS_CLASSES . 'order.php');
-            $order = new order;
-            require(DIR_WS_CLASSES . 'order_total.php');
+    private function process($code){
+        require_once(DIR_WS_CLASSES . 'shipping.php');
+        require_once(DIR_WS_CLASSES . 'payment.php');
+        require_once(DIR_WS_CLASSES . 'order.php');
+        require_once(DIR_WS_CLASSES . 'order_total.php');
+        global $zco_notifier, $currencies, $order, $order_total_modules;
+
+        $_SESSION = unserialize( $this->getCardgateOrder()['sessionstr'] );
+        $sPayment = $_SESSION['payment'];
+        $aShipping = $_SESSION['shipping'];
+        $oCart = $_SESSION['cart'];
+        $aProducts = $oCart->get_products();
+        $aTransactionInfo = $this->getTransactionInfo($code);
+
+        // include the constants for the payment module
+        include_once (DIR_WS_MODULES . 'payment/' . $sPayment . '.php');
+        $payment_modules = new payment( $sPayment );
+        $payment_module = $payment_modules->paymentClass;
+        $shipping_modules = new shipping( $aShipping );
+
+        $orderId = $this->getCardgateOrder()['order_id'];
+        if ($orderId == 0) {
+            $order               = new order();
+            $order->info['comment'] = $aTransactionInfo['comment'];
             $order_total_modules = new order_total();
             $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_BEFORE_ORDER_TOTALS_PROCESS' );
             $order_totals = $order_total_modules->process();
             $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_AFTER_ORDER_TOTALS_PROCESS' );
-            $insert_id = $order->create( $order_totals );
-
+            $orderId = (int) $order->create( $order_totals );
             $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_AFTER_ORDER_CREATE' );
+        } else {
+            $order = new order($orderId);
+            $order->info['comment'] = $aTransactionInfo['comment'];
+        }
 
-            $status_paid = constant( $payment_module->module_payment_type . '_ORDER_PAID_STATUS_ID' );
-            if ( $status_paid == 0 )
-                $status_paid = 1000;
-            if ( !isset( $status_paid ) ) {
-                $status_paid = 2;
+        $aData= array( 'transaction_id' => $this->getTransaction(), 'status' => $code, 'order_id' => $orderId );
+        zen_db_perform( 'CGP_orders_table', $aData, 'update', 'ref_id=' . $this->getReference() );
+
+       $this->updateOrder($aTransactionInfo, $orderId);
+
+        //process a pending payment
+        $iPreviousStatus = $this->getCardgateOrder()['status'];
+        if ($iPreviousStatus >=700 && $iPreviousStatus < 800){
+            if ($code >= 300 && $code <400){
+                $this->restoreStock($aProducts);
             }
-            if ( $_POST['code'] == '200' ) {
+            $order->send_order_email( $orderId, 2 );
+            return;
+        }
 
-                $sql = "UPDATE " . TABLE_ORDERS . "
-	                 SET orders_status = " . ( int ) $status_paid . "
-	                 WHERE orders_id = '" . ( int ) $insert_id . "'";
-                $db->Execute( $sql );
+        $order->create_add_products( $orderId, 2 );
+        $_SESSION['order_number_created'] = $orderId;
+        $GLOBALS[$_SESSION['payment']]->transaction_id = $this->getTransaction();
+        $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_AFTER_ORDER_CREATE_ADD_PRODUCTS' );
+        $order->send_order_email( $orderId, 2 );
+        $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_AFTER_SEND_ORDER_EMAIL' );
 
-                $sql_data_array = array( 'orders_id' => ( int ) $insert_id,
-                    'orders_status_id' => ( int ) $status_paid,
-                    'date_added' => 'now()',
-                    'comments' => 'Card Gate status: ' . $_POST['code'],
-                    'customer_notified' => 0
-                );
+        // Prepare sales-tracking data for use by notifier class
+        $ototal = $order_subtotal = $credits_applied = 0;
 
-                zen_db_perform( TABLE_ORDERS_STATUS_HISTORY, $sql_data_array );
-                $order->create_add_products( $insert_id, 2 );
-                $_SESSION['order_number_created'] = $insert_id;
-                $GLOBALS[$_SESSION['payment']]->transaction_id = $_POST['transaction'];
-                $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_AFTER_ORDER_CREATE_ADD_PRODUCTS' );
-                $order->send_order_email( $insert_id, 2 );
-                $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_AFTER_SEND_ORDER_EMAIL' );
-                // Prepare sales-tracking data for use by notifier class
-                $ototal = $order_subtotal = $credits_applied = 0;
-                for ( $i = 0, $n = sizeof( $order_totals ); $i < $n; $i++ ) {
-                    if ( $order_totals[$i]['code'] == 'ot_subtotal' )
-                        $order_subtotal = $order_totals[$i]['value'];
-                    if ( $$order_totals[$i]['code']->credit_class == true )
-                        $credits_applied += $order_totals[$i]['value'];
-                    if ( $order_totals[$i]['code'] == 'ot_total' )
-                        $ototal = $order_totals[$i]['value'];
-                }
-                $commissionable_order = ($order_subtotal - $credits_applied);
+        foreach ($order_totals as $order_total){
+            if ($order_total['code'] == 'ot_subtotal') {$order_subtotal = $order_total['value'];}
+            if ( $$order_total['code']->credit_class == true ) {$credits_applied += $order_total['value'];}
+            if ( $order_total['code'] == 'ot_total' ) {$ototal = $order_total['value'];}
+        }
 
-                $commissionable_order_formatted = $currencies->format( $commissionable_order );
-                $_SESSION['order_summary']['order_number'] = $insert_id;
-                $_SESSION['order_summary']['order_subtotal'] = $order_subtotal;
-                $_SESSION['order_summary']['credits_applied'] = $credits_applied;
-                $_SESSION['order_summary']['order_total'] = $ototal;
-                $_SESSION['order_summary']['commissionable_order'] = $commissionable_order;
-                $_SESSION['order_summary']['commissionable_order_formatted'] = $commissionable_order_formatted;
-                $_SESSION['order_summary']['coupon_code'] = $order->info['coupon_code'];
-                $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_HANDLE_AFFILIATES', 'cardgateipn' );
+        $commissionable_order = ($order_subtotal - $credits_applied);
+        $commissionable_order_formatted = $currencies->format( $commissionable_order );
+        $_SESSION['order_summary']['order_number'] = $orderId;
+        $_SESSION['order_summary']['order_subtotal'] = $order_subtotal;
+        $_SESSION['order_summary']['credits_applied'] = $credits_applied;
+        $_SESSION['order_summary']['order_total'] = $ototal;
+        $_SESSION['order_summary']['commissionable_order'] = $commissionable_order;
+        $_SESSION['order_summary']['commissionable_order_formatted'] = $commissionable_order_formatted;
+        $_SESSION['order_summary']['coupon_code'] = $order->info['coupon_code'];
+        $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_HANDLE_AFFILIATES', 'cardgateipn' );
+
+        // add products that have been subtracted by the order.
+        if ($code >= 300 && $code < 400) {
+            $this->restoreStock( $aProducts );
+        }
+    }
+
+    public function processCallback(){
+        if ($this->hashCheck()){
+            $code = $this->getCode();
+            if (!$this->isProcessed()){
+                $this->process( $code );
             }
-            echo ($_POST['transaction'] . '.' . $_POST['code']);
+            return $this->getTransaction() . '.' . $code;
+        } else {
+            return 'Hashcheck failed!';
         }
     }
 }
 
-require( 'includes/application_bottom.php' );
-?>
+$oCardgate = new cardgate(($_POST));
+echo $oCardgate->processCallback();
+

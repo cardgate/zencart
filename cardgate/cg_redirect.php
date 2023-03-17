@@ -75,7 +75,7 @@ require( 'includes/application_top.php' );
             $transaction->setPaymentMethod( $order['paymentmethod'] );
             $transaction->setCallbackUrl( $this->getUrl( 'cardgate/cg_process.php' ) );
             $transaction->setRedirectUrl($this->getUrl('?main_page=checkout_success&action=empty_cart'));
-            $transaction->setFailureUrl($this->getUrl('cardgate/cg_process.php?status=cancelled&ref_id=' . $order['reference']));
+            $transaction->setFailureUrl($this->getUrl('?main_page=checkout_payment'));
             $transaction->setReference( (string) $order['reference'] );
             $transaction->setDescription( $order['description'] );
 
@@ -101,7 +101,9 @@ require( 'includes/application_top.php' );
                     $item['quantity'],
                     $item['price']
                 );
-                //$cartItem->setVat(round($item->getTaxPercent(), 0));
+                if ($item['vat'] > 0) {
+                    $cartItem->setVat( $item['vat'] );
+                }
                 $cartItem->setVatIncluded($item['vat_inc']);
                 $cartItem->setVatAmount($item['vat_amount']);
             }

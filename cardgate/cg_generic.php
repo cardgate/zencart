@@ -7,6 +7,8 @@
  * Released under the GNU General Public License
  * Zen-Cart version Copyright (c) 2011 GetZenned: http://www.getzenned.nl
  */
+
+require_once dirname(__FILE__).'/cardgate-clientlib-php/init.php';
 abstract class cg_generic {
 
     var $debug = false;
@@ -35,14 +37,6 @@ abstract class cg_generic {
         $protocol = (!empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
         $domain_name = $_SERVER['HTTP_HOST'] . '/';
         return $protocol . $domain_name . 'cardgate/cg_redirect.php';
-
-    	$mode = constant('MODULE_PAYMENT_CG_CARDGATE_MODE');
-        $cg_test = $mode === 'Test';
-        if ( $cg_test ) {
-            return "https://secure-staging.curopayments.net/gateway/cardgate/";
-        } else {
-            return "https://secure.curopayments.net/gateway/cardgate/";
-        }
     }
 
     function javascript_validation() {
@@ -125,7 +119,7 @@ abstract class cg_generic {
 
     function check() {
         global $db;
-        if ( !isset( $this->check ) ) {
+        if ( !isset( $this->check) ) {
             if ($this->payment_option == 'cardgate') {
                 $check_query = $db->Execute( "select configuration_value from " . TABLE_CONFIGURATION . " where configuration_key = '" . $this->module_payment_type . '_MODE' . "'" );
             } else {
@@ -133,7 +127,7 @@ abstract class cg_generic {
             }
             $this->check = $check_query->RecordCount();
         }
-        return (0 < $this->check);
+        return ( 0 < $this->check );
     }
 
     function output_error() {
@@ -188,13 +182,14 @@ abstract class cg_generic {
             $item['quantity'] = $product['qty'];
             $item['sku'] = 'product_' . $productid;
             $item['name'] = $product['name'];
-            $item['price'] = intval(round( $product['final_price'] / $item['quantity'] * 100, 0 ));
-            $item['vat_amount'] = intval(round( $product['tax'] / 100 * $item['price'], 0 ));
+            $item['price'] = (int) round( $product['final_price'] * 100, 0 );
+            $item['vat'] = (int) round( $product['tax'], 0 );
+            $item['vat_amount'] = (int) round($product['final_price'] * $item['vat']);
             $item['vat_inc'] = 0;
             $item['type'] = 1;
             $cartitems[] = $item;
 
-            $tax_total += $item['vat_amount'];
+            $tax_total += $item['vat_amount'] * $item['quantity'];
         }
 
         if ( $order->info['shipping_cost'] > 0 ) {
@@ -245,7 +240,6 @@ abstract class cg_generic {
         }
 
         $process_button_string =
-            zen_draw_hidden_field( 'siteid', constant( 'MODULE_PAYMENT_CG_CARDGATE_SITEID' ) ) .
             zen_draw_hidden_field( 'zen_order', json_encode( serialize( $zen_order), JSON_HEX_APOS | JSON_HEX_QUOT ) ).
             zen_draw_hidden_field( 'cardgateredirect', 'true' );
         return $process_button_string;
@@ -258,10 +252,6 @@ abstract class cg_generic {
     function install() {
         global $db;
 
-        $protocol = (!empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
-        $domain_name = $_SERVER['HTTP_HOST'] . '/';
-        $cg_control = $protocol . $domain_name . 'cardgate/cg_process.php';
-
         if ($this->module_payment_type == "MODULE_PAYMENT_CG_CARDGATE") {
             // mode (test or active)
             $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('CardGate Mode', '" . $this->module_payment_type . "_MODE', 'Test', 'Status mode for CGP payments (test or active)', '6', '1','zen_cfg_select_option(array(\'Test\', \'Active\'), ', now())" );
@@ -272,7 +262,7 @@ abstract class cg_generic {
             // merchant id
             $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Merchant ID', '" . $this->module_payment_type . "_MERCHANTID', '', 'CardGate Merchant ID', '6', '4', now())" );
             // api key
-            $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, set_function, use_function) values ('API key', '" . $this->module_payment_type . "_APIKEY', '', 'CardGate API key', '6', '5', now(),'zen_cfg_password_input(', 'zen_cfg_password_display')" );
+            $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('API key', '" . $this->module_payment_type . "_APIKEY', '', 'CardGate API key', '6', '5', now(), 'zen_cfg_password_display')" );
             // language
             $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Gateway language', '" . $this->module_payment_type . "_LANGUAGE', 'en', 'Gateway language', '6', '6', now())" );
             } else {
@@ -333,7 +323,7 @@ abstract class cg_generic {
         }
         $keys = substr( $keys, 0, -1 );
 
-        if ( 'True' === constant( $this->module_payment_type . '_DROP_TABLE' ) ) {
+        if ( defined ( $this->module_payment_type . '_DROP_TABLE' ) && 'True' === constant( $this->module_payment_type . '_DROP_TABLE' ) ) {
             $db->Execute( "DROP TABLE IF EXISTS `CGP_orders_table`" );
         }
 
@@ -358,17 +348,21 @@ abstract class cg_generic {
     }
 
     public function get_banks() {
-        
-        $this->checkBanks();
-        $aBankOptions = $this->fetchBankOptions();
-        $aBanks = array();
-        foreach ( $aBankOptions as $id => $text ) {
-            $aBanks[] = array(
-                "id" => $id,
-                "text" => $text
-            );
+        if ( $this->genericModuleSet()) {
+            $this->checkBanks();
+            $aBankOptions = $this->fetchBankOptions();
+            $aBanks       = array();
+            foreach ( $aBankOptions as $id => $text ) {
+                $aBanks[] = array(
+                    "id"   => $id,
+                    "text" => $text
+                );
+            }
+
+            return $aBanks;
+        } else {
+            return false;
         }
-        return $aBanks;
     }
     
     private function checkBanks(){
@@ -394,24 +388,20 @@ abstract class cg_generic {
     private function cacheBankOptions() {
         global $db;
         
-       $cg_test = (constant( 'MODULE_PAYMENT_CG_CARDGATE_MODE' ) === 'Test' ? true : false);
-       
-       if ($cg_test){
-            $url = 'https://secure-staging.curopayments.net/cache/idealDirectoryCUROPayments.dat';
-       } else {
-           $url = 'https://secure.curopayments.net/cache/idealDirectoryCUROPayments.dat';
-       }
-       
-        if ( !ini_get( 'allow_url_fopen' ) || !function_exists( 'file_get_contents' ) ) {
-            $result = false;
-        } else {
-            $result = file_get_contents( $url );
-        }
+       $testMode = (constant( 'MODULE_PAYMENT_CG_CARDGATE_MODE' ) === 'Test' ? true : false);
+       $merchantId = (int) constant( 'MODULE_PAYMENT_CG_CARDGATE_MERCHANTID' );
+       $apiKey = constant( 'MODULE_PAYMENT_CG_CARDGATE_APIKEY' );
+       $oCardGate = new cardgate\api\Client( $merchantId, $apiKey, $testMode );
+       $aIssuers  = $oCardGate->methods()->get(\cardgate\api\Method::IDEAL)->getIssuers();
 
-        if ( $result ) {
-            $aBanks = unserialize( $result );
-            $aBanks[0] = '-Maak uw keuze a.u.b.-';
-        }
+       $aBanks = [];
+       $aBanks[0] = '-Maak uw keuze a.u.b.-';
+
+       if ( $aIssuers ) {
+           foreach ($aIssuers as $aIsssuer){
+               $aBanks[$aIsssuer['id']] = $aIsssuer['name'];
+           }
+       }
         
         $oResult = $db->execute("SELECT configuration_id FROM ". TABLE_CONFIGURATION ." WHERE configuration_key='MODULE_PAYMENT_CG_IDEAL_ISSUERS'");
         $iConfigurationId = $oResult->fields['configuration_id'];
@@ -425,7 +415,7 @@ abstract class cg_generic {
 		        $resultId = $db->execute( "UPDATE " . TABLE_CONFIGURATION . " SET configuration_value = '" . $sIssuers . "' WHERE configuration_key = 'MODULE_PAYMENT_CG_IDEAL_ISSUERS'" );
 	        }
 	        $iIssuerRefresh = ( 24 * 60 * 60 ) + time();
-	        $resultId       = $db->execute( "UPDATE " . TABLE_CONFIGURATION . " SET configuration_value = '" . $iIssuerRefresh . "' WHERE configuration_key = 'MODULE_PAYMENT_CG_IDEAL_ISSUER_REFRESH'" );
+	        $db->execute( "UPDATE " . TABLE_CONFIGURATION . " SET configuration_value = '" . $iIssuerRefresh . "' WHERE configuration_key = 'MODULE_PAYMENT_CG_IDEAL_ISSUER_REFRESH'" );
         }
     }
     
@@ -461,6 +451,9 @@ abstract class cg_generic {
              default:
                  $display = $logo . ' '. $text;
          }
+         if (!$this->genericModuleSet()){
+             $display .= '<span class="alert"> (Please configure CardGate module first.) </span>';
+         }
          return $display;
     }
 
@@ -476,7 +469,15 @@ abstract class cg_generic {
 
     function getDescription(){
     	$descriptiom = $this->module_payment_type . '_TEXT_DESCRIPTION';
-    	return (defined($descriptiom) ? '<b>module version: ' .$this->version. '</b></br>'.constant( $descriptiom ) : null);
+        $message = defined($descriptiom) ? '<b>module version: ' .$this->version. '</b></br>'.constant( $descriptiom ) : null;
+        if (!$this->genericModuleSet() && !($this->payment_option == 'cardgate')){
+            $message .= '<br>Install the Generic CardGate module  first please.';
+        }
+    	return $message;
+    }
+
+    function genericModuleSet(){
+       return defined ('MODULE_PAYMENT_CG_CARDGATE_APIKEY');
     }
 
 }
