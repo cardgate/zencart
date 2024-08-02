@@ -21,7 +21,6 @@ includes/languages/dutch/modules/payment/*
 !includes/languages/dutch/modules/payment/cg_banktransfer.php
 !includes/languages/dutch/modules/payment/cg_creditcard.php
 !includes/languages/dutch/modules/payment/cg_directdebit.php
-!includes/languages/dutch/modules/payment/cg_giropay.php
 !includes/languages/dutch/modules/payment/cg_giftcard.php
 !includes/languages/dutch/modules/payment/cg_przelewy24.php
 !includes/languages/dutch/modules/payment/cg_klarna.php
@@ -47,7 +46,6 @@ includes/languages/english/modules/payment/*
 !includes/languages/english/modules/payment/cg_banktransfer.php
 !includes/languages/english/modules/payment/cg_creditcard.php
 !includes/languages/english/modules/payment/cg_directdebit.php
-!includes/languages/english/modules/payment/cg_giropay.php
 !includes/languages/english/modules/payment/cg_giftcard.php
 !includes/languages/english/modules/payment/cg_przelewy24.php
 !includes/languages/english/modules/payment/cg_klarna.php
@@ -71,7 +69,6 @@ includes/modules/payment/*
 !includes/modules/payment/cg_banktransfer.php
 !includes/modules/payment/cg_creditcard.php
 !includes/modules/payment/cg_directdebit.php
-!includes/modules/payment/cg_giropay.php
 !includes/modules/payment/cg_giftcard.php
 !includes/modules/payment/cg_przelewy24.php
 !includes/modules/payment/cg_klarna.php
