@@ -51,10 +51,12 @@ abstract class cg_generic {
         $selection           = array();
         $selection['id']     = $this->code;
         $selection['module'] = $this->title;
-
-        if ( $this->module_payment_type == 'MODULE_PAYMENT_CG_IDEAL' ) {
+        $show_issuers = false;
+        if ( defined( $this->module_payment_type . '_SHOW_ISSUERS' ) && constant( $this->module_payment_type . '_SHOW_ISSUERS' ) == 'With issuers' ) {
+            $show_issuers = true;
+        }
+        if ( $this->module_payment_type == 'MODULE_PAYMENT_CG_IDEAL' && $show_issuers ) {
             $onFocus = ' onfocus="methodSelect(\'pmt-' . $this->code . '\')"';
-
             $selection['fields'] = array(
                 array(
                     'field' => zen_draw_pull_down_menu( 'suboption', $this->get_banks(), '', $onFocus )
@@ -292,6 +294,11 @@ abstract class cg_generic {
             $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, use_function, set_function, date_added) values ('Payment Zone', '" . $this->module_payment_type . "_ZONE', '0', 'If a zone is selected, only enable this payment method for that zone.', '6', '10', 'zen_get_zone_class_title', 'zen_cfg_pull_down_zone_classes(', now())" );
             // sort order
             $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Sort order of display.', '" . $this->module_payment_type . "_SORT_ORDER', '0', 'Sort order of display. Lowest is displayed first.', '6', '11' , now())" );
+
+            if ( $this->module_payment_type == "MODULE_PAYMENT_CG_IDEAL" ) {
+                // show iDEAL issuers
+                $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Show ideal issuers.', '" . $this->module_payment_type . "_SHOW_ISSUERS', 'Without issuers', 'iDEAL v2 will not show issuers any more by default (Mandatory by iDEAL).', '6', '12','zen_cfg_select_option(array(\'Without issuers\', \'With issuers\'), ', now())" );
+            }
         }
 
         $query = 'CREATE TABLE IF NOT EXISTS `CGP_orders_table` (' .
@@ -358,6 +365,7 @@ abstract class cg_generic {
             $this->module_payment_type . '_CHECKOUT_DISPLAY',
             $this->module_payment_type . '_ZONE',
             $this->module_payment_type . '_SORT_ORDER',
+            $this->module_payment_type . '_SHOW_ISSUERS',
             $this->module_payment_type . '_ORDER_INITIAL_STATUS_ID',
             $this->module_payment_type . '_ORDER_PAID_STATUS_ID'
         );
@@ -489,8 +497,8 @@ abstract class cg_generic {
     }
 
     function getDescription() {
-        $descriptiom = $this->module_payment_type . '_TEXT_DESCRIPTION';
-        $message     = defined( $descriptiom ) ? '<b>module version: ' . $this->version . '</b></br>' . constant( $descriptiom ) : null;
+        $description = $this->module_payment_type . '_TEXT_DESCRIPTION';
+        $message     = defined( $description ) ? '<b>module version: ' . $this->version . '</b></br>' . constant( $description ) : null;
         if ( ! $this->genericModuleSet() && ! ( $this->payment_option == 'cardgate' ) ) {
             $message .= '<br>Install the Generic CardGate module  first please.';
         }
