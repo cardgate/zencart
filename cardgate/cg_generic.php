@@ -16,7 +16,7 @@ abstract class cg_generic {
     var $order_status = 0;
     var $code, $title, $description, $enabled, $module_payment_type;
 
-    var $version = '1.5.18';
+    var $version = '1.5.19';
 
 // class constructor
 
@@ -51,11 +51,7 @@ abstract class cg_generic {
         $selection           = array();
         $selection['id']     = $this->code;
         $selection['module'] = $this->title;
-        $show_issuers = false;
-        if ( defined( $this->module_payment_type . '_SHOW_ISSUERS' ) && constant( $this->module_payment_type . '_SHOW_ISSUERS' ) == 'With issuers' ) {
-            $show_issuers = true;
-        }
-        if ( $this->module_payment_type == 'MODULE_PAYMENT_CG_IDEAL' && $show_issuers ) {
+        if ( $this->module_payment_type == 'MODULE_PAYMENT_CG_IDEAL' && $this->show_issuers() ) {
             $onFocus = ' onfocus="methodSelect(\'pmt-' . $this->code . '\')"';
             $selection['fields'] = array(
                 array(
@@ -65,6 +61,14 @@ abstract class cg_generic {
         }
 
         return $selection;
+    }
+
+    function show_issuers(){
+        $show_issuers = false;
+        if ( defined( $this->module_payment_type . '_SHOW_ISSUERS' ) && constant( $this->module_payment_type . '_SHOW_ISSUERS' ) == 'With issuers' ) {
+            $show_issuers = true;
+        }
+        return $show_issuers;
     }
 
     function pre_confirmation_check() {
@@ -252,7 +256,7 @@ abstract class cg_generic {
         $zen_order['platform_version'] = PROJECT_VERSION_MAJOR . '.' . PROJECT_VERSION_MINOR;
         $zen_order['cardgatehash']     = $sCardgateHash;
 
-        if ( $this->payment_option == 'ideal' ) {
+        if ( $this->payment_option == 'ideal' && $this->show_issuers()) {
             $zen_order['suboption'] = $_POST['suboption'];
         }
 

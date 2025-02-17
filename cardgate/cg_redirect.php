@@ -86,6 +86,9 @@ class Redirect {
             $transaction->setReference( (string) $order['reference'] );
             $transaction->setDescription( $order['description'] );
 
+            if (key_exists('suboption',$order)) {
+                $transaction->setIssuer( $order['suboption'] );
+            }
 
             // Add the consumer data to the transaction.
             $consumer = $transaction->getConsumer();
