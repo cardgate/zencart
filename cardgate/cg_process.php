@@ -13,14 +13,10 @@ foreach ( $_GET as $key => $value ) {
     $_POST[ $cardgatekey ] = $value;
     unset( $_GET[ $key ] );
 }
-
-
 chdir( '../' );
-require_once( 'includes/application_top.php' );
-require_once( 'includes/defined_paths.php' );
-
-$sLanguageDir = DIR_WS_LANGUAGES . $_SESSION['language'] . '/';
-include_once( $sLanguageDir . 'checkout_process.php' );
+define('__ROOT__', dirname(dirname(__FILE__)).'/');
+require_once( __ROOT__.'includes/application_top.php' );
+require_once( __ROOT__.'includes/defined_paths.php' );
 
 class cardgate {
     protected $sHashKey;
@@ -192,12 +188,18 @@ class cardgate {
     }
 
     private function process( $code ) {
+
+        $sLanguageDir = DIR_WS_LANGUAGES . $_SESSION['language'] . '/';
+        include_once( __ROOT__.$sLanguageDir . 'lang.checkout_process.php' );
         require_once( DIR_WS_CLASSES . 'shipping.php' );
         require_once( DIR_WS_CLASSES . 'payment.php' );
         require_once( DIR_WS_CLASSES . 'order.php' );
         require_once( DIR_WS_CLASSES . 'order_total.php' );
-        global $zco_notifier, $currencies, $order, $order_total_modules;
+        global $zco_notifier, $currencies, $order, $order_totals, $order_total_modules;
 
+        foreach ( $define as $name => $value ) {
+            define( $name, $value );
+        }
         $_SESSION         = unserialize( $this->getCardgateOrder()['sessionstr'] );
         $sPayment         = $_SESSION['payment'];
         $aShipping        = $_SESSION['shipping'];
@@ -211,7 +213,7 @@ class cardgate {
         $payment_module   = $payment_modules->paymentClass;
         $shipping_modules = new shipping( $aShipping );
 
-        $orderId = $this->getCardgateOrder()['order_id'];
+        $orderId = (int)$this->getCardgateOrder()['order_id'];
         if ( $orderId == 0 ) {
             $order                  = new order();
             $order->info['comment'] = $aTransactionInfo['comment'];
@@ -233,20 +235,21 @@ class cardgate {
 
         //process a pending payment
         $iPreviousStatus = $this->getCardgateOrder()['status'];
+
         if ( $iPreviousStatus >= 700 && $iPreviousStatus < 800 ) {
             if ( $code >= 300 && $code < 400 ) {
                 $this->restoreStock( $aProducts );
             }
-            $order->send_order_email( $orderId, 2 );
+            $order->send_order_email( $orderId );
 
             return;
         }
 
         $order->create_add_products( $orderId, 2 );
-        $_SESSION['order_number_created']                = $orderId;
+        $_SESSION['order_number_created'] = $orderId;
         $GLOBALS[ $_SESSION['payment'] ]->transaction_id = $this->getTransaction();
         $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_AFTER_ORDER_CREATE_ADD_PRODUCTS' );
-        $order->send_order_email( $orderId, 2 );
+        $order->send_order_email( $orderId);
         $zco_notifier->notify( 'NOTIFY_CHECKOUT_PROCESS_AFTER_SEND_ORDER_EMAIL' );
 
         // Prepare sales-tracking data for use by notifier class
@@ -255,9 +258,6 @@ class cardgate {
         foreach ( $order_totals as $order_total ) {
             if ( $order_total['code'] == 'ot_subtotal' ) {
                 $order_subtotal = $order_total['value'];
-            }
-            if ( $$order_total['code']->credit_class == true ) {
-                $credits_applied += $order_total['value'];
             }
             if ( $order_total['code'] == 'ot_total' ) {
                 $ototal = $order_total['value'];
@@ -280,14 +280,12 @@ class cardgate {
             $this->restoreStock( $aProducts );
         }
     }
-
     public function processCallback() {
         if ( $this->hashCheck() ) {
             $code = $this->getCode();
             if ( ! $this->isProcessed() ) {
                 $this->process( $code );
             }
-
             return $this->getTransaction() . '.' . $code;
         } else {
             return 'Hashcheck failed!';

@@ -13,10 +13,13 @@ require_once dirname( __FILE__ ) . '/cardgate-clientlib-php/init.php';
 abstract class cg_generic {
 
     var $debug = false;
+    var $transaction_id = 0;
+    var $form_action_url = '';
     var $order_status = 0;
     var $code, $title, $description, $enabled, $module_payment_type;
 
-    var $version = '1.5.19';
+    var $version = '2.0.0';
+    var $sort_order = '';
 
 // class constructor
 
