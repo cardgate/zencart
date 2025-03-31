@@ -111,7 +111,7 @@ class Redirect {
                     $item['quantity'],
                     $item['price']
                 );
-                if ( $item['vat'] > 0 ) {
+                if ( key_exists('vat',$item) && $item['vat'] > 0 ) {
                     $cartItem->setVat( $item['vat'] );
                 }
                 $cartItem->setVatIncluded( $item['vat_inc'] );
