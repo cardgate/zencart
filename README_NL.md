@@ -6,7 +6,7 @@
 
 ## Support
 
-Deze plugin is geschikt voor ZenCart versies **1.3.7.1** tot en met **1.5.x**.
+Deze plugin is geschikt voor ZenCart versies **2.1.x**.
 
 ## Voorbereiding
 
