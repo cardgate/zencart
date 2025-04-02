@@ -6,7 +6,7 @@
 
 ## Support
 
-Dieses Modul is geeignet für ZenCart Version **1.3.7.1** bis zu Version **1.5.x**.
+Dieses Modul is geeignet für ZenCart Version **2.1.x**.
 
 ## Vorbereitung
 

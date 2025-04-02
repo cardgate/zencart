@@ -6,7 +6,7 @@
 
 ## Support
 
-This plugin supports ZenCart version **1.3.7.1** to **1.5.x**.
+This plugin supports ZenCart version **2.1.x**.
 
 ## Preparation
 
