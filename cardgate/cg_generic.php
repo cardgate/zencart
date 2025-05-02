@@ -18,7 +18,7 @@ abstract class cg_generic {
     var $order_status = 0;
     var $code, $title, $description, $enabled, $module_payment_type;
 
-    var $version = '2.0.0';
+    var $version = '2.0.1';
     var $sort_order = '';
 
 // class constructor
@@ -54,30 +54,11 @@ abstract class cg_generic {
         $selection           = array();
         $selection['id']     = $this->code;
         $selection['module'] = $this->title;
-        if ( $this->module_payment_type == 'MODULE_PAYMENT_CG_IDEAL' && $this->show_issuers() ) {
-            $onFocus = ' onfocus="methodSelect(\'pmt-' . $this->code . '\')"';
-            $selection['fields'] = array(
-                array(
-                    'field' => zen_draw_pull_down_menu( 'suboption', $this->get_banks(), '', $onFocus )
-                )
-            );
-        }
-
         return $selection;
     }
-
-    function show_issuers(){
-        $show_issuers = false;
-        if ( defined( $this->module_payment_type . '_SHOW_ISSUERS' ) && constant( $this->module_payment_type . '_SHOW_ISSUERS' ) == 'With issuers' ) {
-            $show_issuers = true;
-        }
-        return $show_issuers;
-    }
-
     function pre_confirmation_check() {
         return false;
     }
-
     function confirmation() {
         global $order;
 
@@ -259,10 +240,6 @@ abstract class cg_generic {
         $zen_order['platform_version'] = PROJECT_VERSION_MAJOR . '.' . PROJECT_VERSION_MINOR;
         $zen_order['cardgatehash']     = $sCardgateHash;
 
-        if ( $this->payment_option == 'ideal' && $this->show_issuers()) {
-            $zen_order['suboption'] = $_POST['suboption'];
-        }
-
         $process_button_string =
             zen_draw_hidden_field( 'zen_order', json_encode( serialize( $zen_order ), JSON_HEX_APOS | JSON_HEX_QUOT ) ) .
             zen_draw_hidden_field( 'cardgateredirect', 'true' );
@@ -301,11 +278,6 @@ abstract class cg_generic {
             $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, use_function, set_function, date_added) values ('Payment Zone', '" . $this->module_payment_type . "_ZONE', '0', 'If a zone is selected, only enable this payment method for that zone.', '6', '10', 'zen_get_zone_class_title', 'zen_cfg_pull_down_zone_classes(', now())" );
             // sort order
             $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Sort order of display.', '" . $this->module_payment_type . "_SORT_ORDER', '0', 'Sort order of display. Lowest is displayed first.', '6', '11' , now())" );
-
-            if ( $this->module_payment_type == "MODULE_PAYMENT_CG_IDEAL" ) {
-                // show iDEAL issuers
-                $db->Execute( "insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Show ideal issuers.', '" . $this->module_payment_type . "_SHOW_ISSUERS', 'Without issuers', 'iDEAL v2 will not show issuers any more by default (Mandatory by iDEAL).', '6', '12','zen_cfg_select_option(array(\'Without issuers\', \'With issuers\'), ', now())" );
-            }
         }
 
         $query = 'CREATE TABLE IF NOT EXISTS `CGP_orders_table` (' .
@@ -372,92 +344,9 @@ abstract class cg_generic {
             $this->module_payment_type . '_CHECKOUT_DISPLAY',
             $this->module_payment_type . '_ZONE',
             $this->module_payment_type . '_SORT_ORDER',
-            $this->module_payment_type . '_SHOW_ISSUERS',
             $this->module_payment_type . '_ORDER_INITIAL_STATUS_ID',
             $this->module_payment_type . '_ORDER_PAID_STATUS_ID'
         );
-    }
-
-    public function get_banks() {
-        if ( $this->genericModuleSet() ) {
-            $this->checkBanks();
-            $aBankOptions = $this->fetchBankOptions();
-            $aBanks       = array();
-            foreach ( $aBankOptions as $id => $text ) {
-                $aBanks[] = array(
-                    "id"   => $id,
-                    "text" => $text
-                );
-            }
-
-            return $aBanks;
-        } else {
-            return false;
-        }
-    }
-
-    private function checkBanks() {
-        global $db;
-
-        $oResult        = $db->execute( "SELECT configuration_value FROM " . TABLE_CONFIGURATION . " WHERE configuration_key='MODULE_PAYMENT_CG_IDEAL_ISSUER_REFRESH'" );
-        $sIssuerRefresh = $oResult->fields['configuration_value'];
-
-        if ( $sIssuerRefresh === null ) {
-            $db->execute( "INSERT INTO " . TABLE_CONFIGURATION . "(configuration_title, configuration_key, configuration_value)
-                        VALUES ( 'Issuer Refresh', 'MODULE_PAYMENT_CG_IDEAL_ISSUER_REFRESH',0)" );
-        }
-
-        $oResult = $db->execute( "SELECT configuration_value FROM " . TABLE_CONFIGURATION . " WHERE configuration_key='MODULE_PAYMENT_CG_IDEAL_ISSUER_REFRESH'" );
-
-        $iIssuerRefresh = (int) $oResult->fields['configuration_value'];
-
-        if ( $iIssuerRefresh < time() ) {
-            $this->cacheBankOptions();
-        }
-    }
-
-    private function cacheBankOptions() {
-        global $db;
-
-        $testMode   = ( constant( 'MODULE_PAYMENT_CG_CARDGATE_MODE' ) === 'Test' ? true : false );
-        $merchantId = (int) constant( 'MODULE_PAYMENT_CG_CARDGATE_MERCHANTID' );
-        $apiKey     = constant( 'MODULE_PAYMENT_CG_CARDGATE_APIKEY' );
-        $oCardGate  = new cardgate\api\Client( $merchantId, $apiKey, $testMode );
-        $aIssuers   = $oCardGate->methods()->get( \cardgate\api\Method::IDEAL )->getIssuers();
-
-        $aBanks    = [];
-        $aBanks[0] = '-Maak uw keuze a.u.b.-';
-
-        if ( $aIssuers ) {
-            foreach ( $aIssuers as $aIsssuer ) {
-                $aBanks[ $aIsssuer['id'] ] = $aIsssuer['name'];
-            }
-        }
-
-        $oResult          = $db->execute( "SELECT configuration_id FROM " . TABLE_CONFIGURATION . " WHERE configuration_key='MODULE_PAYMENT_CG_IDEAL_ISSUERS'" );
-        $iConfigurationId = $oResult->fields['configuration_id'];
-
-        if ( array_key_exists( "INGBNL2A", $aBanks ) ) {
-            $sIssuers = serialize( $aBanks );
-            if ( $iConfigurationId === null ) {
-                $resultId = $db->execute( "INSERT INTO " . TABLE_CONFIGURATION . "(configuration_title, configuration_key, configuration_value)
-                        VALUES ( 'Issuers', 'MODULE_PAYMENT_CG_IDEAL_ISSUERS','" . $sIssuers . "')" );
-            } else {
-                $resultId = $db->execute( "UPDATE " . TABLE_CONFIGURATION . " SET configuration_value = '" . $sIssuers . "' WHERE configuration_key = 'MODULE_PAYMENT_CG_IDEAL_ISSUERS'" );
-            }
-            $iIssuerRefresh = ( 24 * 60 * 60 ) + time();
-            $db->execute( "UPDATE " . TABLE_CONFIGURATION . " SET configuration_value = '" . $iIssuerRefresh . "' WHERE configuration_key = 'MODULE_PAYMENT_CG_IDEAL_ISSUER_REFRESH'" );
-        }
-    }
-
-    function fetchBankOptions() {
-        global $db;
-
-        $oResult = $db->execute( "SELECT configuration_value FROM " . TABLE_CONFIGURATION . " WHERE configuration_key='MODULE_PAYMENT_CG_IDEAL_ISSUERS'" );
-        $sBanks  = $oResult->fields['configuration_value'];
-        $aBanks  = unserialize( $sBanks );
-
-        return $aBanks;
     }
 
     function logo( $payment_option ) {
