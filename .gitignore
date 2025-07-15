@@ -25,6 +25,7 @@ includes/languages/dutch/modules/payment/*
 !includes/languages/dutch/modules/payment/cg_przelewy24.php
 !includes/languages/dutch/modules/payment/cg_klarna.php
 !includes/languages/dutch/modules/payment/cg_bitcoin.php
+!includes/languages/dutch/modules/payment/cg_crypto.php
 !includes/languages/dutch/modules/payment/cg_billink.php
 !includes/languages/dutch/modules/payment/cg_ideal.php
 !includes/languages/dutch/modules/payment/cg_idealqr.php
@@ -50,6 +51,7 @@ includes/languages/english/modules/payment/*
 !includes/languages/english/modules/payment/cg_przelewy24.php
 !includes/languages/english/modules/payment/cg_klarna.php
 !includes/languages/english/modules/payment/cg_bitcoin.php
+!includes/languages/english/modules/payment/cg_crypto.php
 !includes/languages/english/modules/payment/cg_billink.php
 !includes/languages/english/modules/payment/cg_ideal.php
 !includes/languages/english/modules/payment/cg_idealqr.php
@@ -73,6 +75,7 @@ includes/modules/payment/*
 !includes/modules/payment/cg_przelewy24.php
 !includes/modules/payment/cg_klarna.php
 !includes/modules/payment/cg_bitcoin.php
+!includes/modules/payment/cg_crypto.php
 !includes/modules/payment/cg_billink.php
 !includes/modules/payment/cg_ideal.php
 !includes/modules/payment/cg_idealqr.php

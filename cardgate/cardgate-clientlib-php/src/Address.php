@@ -26,6 +26,7 @@
  * @link        https://www.cardgate.com
  */
 namespace cardgate\api {
+
 	/**
 	 * Address instance.
 	 *
