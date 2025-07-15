@@ -18,7 +18,7 @@ abstract class cg_generic {
     var $order_status = 0;
     var $code, $title, $description, $enabled, $module_payment_type;
 
-    var $version = '2.0.1';
+    var $version = '2.0.2';
     var $sort_order = '';
 
 // class constructor
@@ -95,11 +95,31 @@ abstract class cg_generic {
                 }
                 $check_query->MoveNext();
             }
-
-            if ( $check_flag == false ) {
-                $this->enabled = false;
-            }
         }
+
+        $order_currency = $order->info['currency'];
+        $payment_method = 'cardgate'.$this->payment_option;
+        $check_flag     = $this->check_payment_currency($order_currency, $payment_method);
+
+        if ( $check_flag == false ) $this->enabled = false;
+    }
+
+    public function check_payment_currency($currency,$payment_method) {
+        $strictly_euro = in_array($payment_method,['cardgateideal',
+            'cardgateidealqr',
+            'cardgatebancontact',
+            'cardgatebanktransfer',
+            'cardgatebillink',
+            'cardgatesofortbanking',
+            'cardgatedirectdebit',
+            'cardgateonlineueberweisen',
+            'cardgatespraypay']);
+        if ($strictly_euro && $currency != 'EUR') return false;
+
+        $strictly_pln = in_array($payment_method,['cardgateprzelewy24']);
+        if ($strictly_pln && $currency != 'PLN') return false;
+
+        return true;
     }
 
     function get_error() {
