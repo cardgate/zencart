@@ -95,7 +95,11 @@ class Redirect {
             }
             $this->setAddress( $order['billing'], $consumer, 'address' );
             if ( $this->hasValue( $order, 'shipping' ) ) {
-                $this->setAddress( $order['shipping'], $consumer, 'shippingAddress' );
+                if ($order['shipping']['city'] == '') {
+                    $this->setAddress( $order['billing'], $consumer, 'shippingAddress' );
+                } else {
+                    $this->setAddress( $order['shipping'], $consumer, 'shippingAddress' );
+                }
             }
 
             $cart = $transaction->getCart();
