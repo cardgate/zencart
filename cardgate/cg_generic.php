@@ -19,7 +19,7 @@ abstract class cg_generic {
     var $code, $title, $description, $enabled, $module_payment_type;
 
     var $version = '2.0.3';
-    var $sort_order = '';
+    var $sort_order = '';  
 
 // class constructor
 
