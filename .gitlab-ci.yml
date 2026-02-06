@@ -30,8 +30,8 @@ semgrep-sast:
 
 qodana:
   stage: analysis
-  dependencies:
-    - phpunit_job
+#  dependencies:
+#    - phpunit_job
   image:
     name: jetbrains/qodana-php:2025.2
     entrypoint: [""]
