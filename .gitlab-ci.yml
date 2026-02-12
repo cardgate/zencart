@@ -33,13 +33,13 @@ qodana:
 #  dependencies:
 #    - phpunit_job
   image:
-    name: jetbrains/qodana-php:2025.2
+    name: jetbrains/qodana-php:latest
     entrypoint: [""]
   cache:
-    - key: qodana-2025.2-$CI_DEFAULT_BRANCH-$CI_COMMIT_REF_SLUG
+    - key: qodana-latest-$CI_DEFAULT_BRANCH-$CI_COMMIT_REF_SLUG
       fallback_keys:
-        - qodana-2025.2-$CI_DEFAULT_BRANCH-
-        - qodana-2025.2-
+        - qodana-latest-$CI_DEFAULT_BRANCH-
+        - qodana-latest-
       paths:
         - .qodana/cache
   variables:
